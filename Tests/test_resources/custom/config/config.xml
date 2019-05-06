@@ -85,7 +85,4 @@
 	<tx>
 		<cacheMax>256</cacheMax>
 	</tx>
-	<vm>
-		<avm-enabled>true</avm-enabled>
-	</vm>
 </aion>
