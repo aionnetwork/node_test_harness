@@ -17,9 +17,11 @@ import org.aion.harness.main.tools.RpcPayload;
 import org.aion.harness.main.tools.RpcPayloadBuilder;
 import org.aion.harness.main.types.Block;
 import org.aion.harness.main.types.ReceiptHash;
+import org.aion.harness.main.types.StratumWork;
 import org.aion.harness.main.types.SyncStatus;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.main.types.internal.BlockBuilder;
+import org.aion.harness.main.types.internal.MiningWorkBuilder;
 import org.aion.harness.main.types.internal.TransactionReceiptBuilder;
 import org.aion.harness.misc.Assumptions;
 import org.aion.harness.result.Result;
@@ -534,6 +536,50 @@ public final class RPC {
      */
     public RpcResult<SyncStatus> getSyncingStatus() throws InterruptedException {
         return callSyncing(false);
+    }
+
+    /**
+     * Returns the block info of the premined block from the connecting node.
+     *
+     * Note that the node will be considered as attempting to connect to the network if it has zero
+     * peers. In the case of a private network, this means that this method will always time out.
+     * Therefore, this method should only be called on nodes that are connected to / attempting to
+     * connect to public networks.
+     *
+     * @return the result of the call.
+     */
+    public RpcResult<StratumWork> getStratumWork() throws InterruptedException {
+        return callStratumWork();
+    }
+
+    private RpcResult<StratumWork> callStratumWork() throws InterruptedException {
+        RpcPayload payload = new RpcPayloadBuilder()
+            .method(RpcMethod.STRATUM_GETWORK)
+            .build();
+
+        InternalRpcResult internalResult = this.rpc.call(payload, false);
+
+        if (internalResult.success) {
+            JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+            String result = outputParser.attributeToString("result");
+
+            if (result == null) {
+                return RpcResult.unsuccessful("Can't get the mining work");
+            }
+
+            try {
+                StratumWork work = new MiningWorkBuilder().buildFromJsonString(result);
+                return RpcResult.successful(
+                    work,
+                    internalResult.getTimeOfCall(TimeUnit.NANOSECONDS),
+                    TimeUnit.NANOSECONDS);
+            } catch (DecoderException e) {
+                return RpcResult.unsuccessful(e.toString());
+            }
+
+        } else {
+            return RpcResult.unsuccessful(internalResult.error);
+        }
     }
 
     /**

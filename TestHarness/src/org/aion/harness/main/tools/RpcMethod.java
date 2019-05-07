@@ -20,7 +20,9 @@ public enum RpcMethod {
 
     BLOCK_NUMBER("eth_blockNumber"),
 
-    PEER_COUNT("net_peerCount");
+    PEER_COUNT("net_peerCount"),
+
+    STRATUM_GETWORK("getblocktemplate");
 
     private String method;
 
