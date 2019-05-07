@@ -2,11 +2,9 @@ package org.aion.harness.tests.integ;
 
 import static org.aion.harness.tests.contracts.Assertions.assertRpcSuccess;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import org.aion.harness.main.LocalNode;
 import org.aion.harness.main.Network;
 import org.aion.harness.main.NodeConfigurations;
