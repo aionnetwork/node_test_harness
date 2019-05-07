@@ -37,12 +37,30 @@ task copyCustomConfig(type: Copy) {
     into project.file("aion/custom")
 }
 
+task copyMainnetConfig(type: Copy) {
+    if ( !project.file("aion").exists() || !project.file("aion").isDirectory() ) {
+        throw new GradleException("Can't override Aion kernel config because aion directory not present.");
+    }
+    from project.file("test_resources/mainnet")
+    into project.file("aion/mainnet")
+}
+
+task copyMasteryConfig(type: Copy) {
+    if ( !project.file("aion").exists() || !project.file("aion").isDirectory() ) {
+        throw new GradleException("Can't override Aion kernel config because aion directory not present.");
+    }
+    from project.file("test_resources/mastery")
+    into project.file("aion/mastery")
+}
+
 task waitForPorts(type: Exec) { 
     commandLine 'bash', "bin/wait-for-ports.sh"
 }
 
 task ciTest
 ciTest.dependsOn copyCustomConfig
+ciTest.dependsOn copyMainnetConfig
+ciTest.dependsOn copyMasteryConfig
 ciTest.dependsOn waitForPorts
 ciTest.dependsOn test
 
