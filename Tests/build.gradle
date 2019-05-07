@@ -37,6 +37,14 @@ task copyCustomConfig(type: Copy) {
     into project.file("aion/custom")
 }
 
+task copyCustom2Config(type: Copy) {
+    if ( !project.file("aion2").exists() || !project.file("aion2").isDirectory() ) {
+        throw new GradleException("Can't override Aion kernel 2 config because aion directory not present.");
+    }
+    from project.file("test_resources/custom2")
+    into project.file("aion2/custom")
+}
+
 task copyMainnetConfig(type: Copy) {
     if ( !project.file("aion").exists() || !project.file("aion").isDirectory() ) {
         throw new GradleException("Can't override Aion kernel config because aion directory not present.");
@@ -59,13 +67,13 @@ task waitForPorts(type: Exec) {
 
 task ciTest
 ciTest.dependsOn copyCustomConfig
+ciTest.dependsOn copyCustom2Config
 ciTest.dependsOn copyMainnetConfig
 ciTest.dependsOn copyMasteryConfig
 ciTest.dependsOn waitForPorts
 ciTest.dependsOn test
 
 build.dependsOn.remove('check')  // don't run tests on build
-test.mustRunAfter copyCustomConfig
 test.mustRunAfter waitForPorts
 test.outputs.upToDateWhen {false} // make test target always run even if source didn't change
 test { testResultsDirName = "${rootProject.projectDir}/report/FunctionalTests" }

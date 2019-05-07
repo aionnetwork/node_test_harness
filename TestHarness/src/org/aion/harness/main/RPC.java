@@ -503,6 +503,26 @@ public final class RPC {
     }
 
     /**
+     * Returns the number of the connecting of the node
+     *
+     * @return the result of the call.
+     */
+    public RpcResult<Long> getPeerCount() throws InterruptedException {
+        return callGetPeerCount(false);
+    }
+
+    /**
+     * Returns the number of the connecting of the node with verbose
+     *
+     * Displays the I/O of the attempt to hit the RPC endpoint.
+     *
+     * @return the result of the call.
+     */
+    public RpcResult<Long> getPeerCountVerbose() throws InterruptedException {
+        return callGetPeerCount(true);
+    }
+
+    /**
      * Returns the syncing status of the node.
      *
      * Note that the node will be considered as attempting to connect to the network if it has zero
@@ -658,6 +678,7 @@ public final class RPC {
             return RpcResult.unsuccessful(internalResult.error);
         }
     }
+
 
     private RpcResult<BigInteger> callGetBalance(Address address, boolean verbose) throws InterruptedException {
         if (address == null) {
@@ -817,4 +838,31 @@ public final class RPC {
         }
     }
 
+    private RpcResult<Long> callGetPeerCount(boolean verbose) throws InterruptedException {
+
+
+        RpcPayload payload = new RpcPayloadBuilder()
+            .method(RpcMethod.PEER_COUNT)
+            .build();
+
+        InternalRpcResult internalResult = this.rpc.call(payload, verbose);
+
+        if (internalResult.success) {
+            JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+            String result = outputParser.attributeToString("result");
+
+            // This should never happen.
+            if (result == null) {
+                throw new IllegalStateException("No 'result' content to parse from: " + internalResult.output);
+            }
+
+            return RpcResult.successful(
+                Long.valueOf(result),
+                internalResult.getTimeOfCall(TimeUnit.NANOSECONDS),
+                TimeUnit.NANOSECONDS);
+
+        } else {
+            return RpcResult.unsuccessful(internalResult.error);
+        }
+    }
 }
