@@ -8,6 +8,7 @@ import org.aion.harness.tests.integ.BalanceTransferTest;
 import org.aion.harness.tests.integ.BulkBalanceTransferTest;
 import org.aion.harness.tests.integ.CrossCallTest;
 import org.aion.harness.tests.integ.FvmTxSmokeTest;
+import org.aion.harness.tests.integ.InternalTxTest;
 import org.aion.harness.tests.integ.JavaApiSmokeTest;
 import org.aion.harness.tests.integ.RemovedStorageTest;
 import org.aion.harness.tests.integ.runner.ConcurrentRunner;
@@ -26,6 +27,7 @@ import org.junit.runners.Suite;
     , AlternatingVmTest.class
     , RemovedStorageTest.class
     , AvmReceiptLogTest.class
+    , InternalTxTest.class
 })
 public class ConcurrentSuite {
     /**
