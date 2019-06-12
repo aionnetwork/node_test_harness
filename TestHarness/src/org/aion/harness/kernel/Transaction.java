@@ -12,17 +12,31 @@ import org.apache.commons.codec.binary.Hex;
  */
 public class Transaction {
     private final Address to;
+    private final Address from;
     private final byte[] data;
 
     /** Constructor */
     public Transaction(Address to, byte[] data) {
         this.to = to;
         this.data = data;
+        this.from = null;
+    }
+
+    /** Constructor */
+    public Transaction(Address from, Address to, byte[] data) {
+        this.to = to;
+        this.data = data;
+        this.from = from;
     }
 
     /** @return <code>to</code> field of transaction */
     public Address getTo() {
         return to;
+    }
+
+    /** @return <code>to</code> field of transaction */
+    public Address getFrom() {
+        return from;
     }
 
     /** @return <code>data</code> field of transaction */
@@ -46,7 +60,10 @@ public class Transaction {
             dataVal = String.format("\"0x%s\"", Hex.encodeHexString(getData()));
         }
 
+        String from = getFrom() == null ? "" : String.format("\"from\" : \"0x%s\",", Hex.encodeHexString(getFrom().getAddressBytes()));
+
         return String.format("{"
+                + from
                 + "\"to\" : \"0x%s\","
                 + "\"data\" : %s"
                 + "}",
