@@ -25,7 +25,6 @@ import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;

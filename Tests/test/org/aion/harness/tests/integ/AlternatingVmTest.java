@@ -13,7 +13,6 @@ import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.main.util.TestHarnessHelper;

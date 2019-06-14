@@ -1,5 +1,7 @@
 package org.aion.harness.tests.integ.runner.internal;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.math.BigInteger;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +13,6 @@ import org.aion.harness.main.NodeListener;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.JavaPrepackagedLogEvents;
 import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.result.FutureResult;

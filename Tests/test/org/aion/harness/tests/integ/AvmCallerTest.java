@@ -1,5 +1,6 @@
 package org.aion.harness.tests.integ;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.aion.harness.tests.contracts.Assertions.assertRpcSuccess;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.aion.avm.core.dappreading.JarBuilder;
 import org.aion.avm.core.util.CodeAndArguments;
 import org.aion.harness.kernel.Address;
@@ -32,7 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Simple smoke test using eth_sendSignedTransaction (deployment, method call) and eth_call
+ * Simple caller test using eth_sendSignedTransaction (deployment, method call) and eth_call
  * on an AVM contract.
  */
 @RunWith(SequentialRunner.class)
@@ -98,7 +100,8 @@ public class AvmCallerTest {
 
     }
 
-    private TransactionReceipt sendTransaction(RawTransaction transaction) throws InterruptedException {
+    private TransactionReceipt sendTransaction(RawTransaction transaction)
+        throws InterruptedException, TimeoutException {
         // we want to ensure that the transaction gets sealed into a block.
         IEvent transactionIsSealed = prepackagedLogEventsFactory.build().getTransactionSealedEvent(transaction);
         FutureResult<LogEventResult> future = this.listener.listenForEvent(transactionIsSealed, 5, TimeUnit.MINUTES);
@@ -110,7 +113,7 @@ public class AvmCallerTest {
 
         // Wait on the future to complete and ensure we saw the transaction get sealed.
         log.log("Waiting for the transaction to process...");
-        LogEventResult listenResult = future.get();
+        LogEventResult listenResult = future.get(120, SECONDS);
         assertTrue(listenResult.eventWasObserved());
         log.log("Transaction was sealed into a block.");
 

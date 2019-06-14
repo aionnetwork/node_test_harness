@@ -1,5 +1,6 @@
 package org.aion.harness.integ;
 
+import java.util.concurrent.TimeoutException;
 import org.aion.harness.integ.resources.LogWriter;
 import org.aion.harness.integ.resources.TestHelper;
 import org.aion.harness.main.LocalNode;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.*;
 
 
@@ -68,7 +70,8 @@ public class RemoteNodeTest {
     }
 
     @Test
-    public void testConnectRemoteNodeToLocalNodeLogFile() throws IOException, InterruptedException {
+    public void testConnectRemoteNodeToLocalNodeLogFile()
+        throws IOException, InterruptedException, TimeoutException {
         Result result = this.localNode.start();
         System.out.println("Start result = " + result);
 
@@ -92,7 +95,7 @@ public class RemoteNodeTest {
         NodeListener nodeListener = NodeListener.listenTo(this.remoteNode);
         FutureResult<LogEventResult> future = nodeListener.listenForEvent(new Event("DEBUG"), 60, TimeUnit.SECONDS);
 
-        LogEventResult waitResult = future.get();
+        LogEventResult waitResult = future.get(120, SECONDS);
         System.out.println("Listener result = " + future.toString());
         assertTrue(waitResult.eventWasObserved());
 
@@ -176,7 +179,8 @@ public class RemoteNodeTest {
     }
 
     @Test
-    public void testLocalAndRemoteNodeTogether() throws InterruptedException, IOException {
+    public void testLocalAndRemoteNodeTogether()
+        throws InterruptedException, IOException, TimeoutException {
         String message = "my message";
 
         // start local node
@@ -214,8 +218,8 @@ public class RemoteNodeTest {
         logWriter.setListenMessage(message);
 
         // get the results of the listeners.
-        LogEventResult localResult = localFuture.get();
-        LogEventResult remoteResult = remoteFuture.get();
+        LogEventResult localResult = localFuture.get(120, SECONDS);
+        LogEventResult remoteResult = remoteFuture.get(120, SECONDS);
 
         System.out.println("Local listener result = " + localFuture);
         System.out.println("Remote listener result = " + remoteFuture);

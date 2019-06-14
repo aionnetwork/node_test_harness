@@ -1,5 +1,6 @@
 package org.aion.harness.tests.integ;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.aion.harness.tests.contracts.Assertions.assertRpcSuccess;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
