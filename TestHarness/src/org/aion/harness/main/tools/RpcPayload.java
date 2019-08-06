@@ -31,7 +31,7 @@ public final class RpcPayload {
         if ((!params.isEmpty()) && (!defaultBlock.isEmpty())) {
             parameters = "\"" + params + "\",\"" + defaultBlock + "\"";
         } else if ((!params.isEmpty()) && (defaultBlock.isEmpty())) {
-            parameters = "\"" + params + "\"";
+            parameters = params;
         } else {
             parameters = "";
         }

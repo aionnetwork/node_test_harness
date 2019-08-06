@@ -52,24 +52,59 @@ public final class RPC {
      * @return the bytes returned by the <code>eth_call</code>
      */
     public byte[] call(Transaction tx) throws InterruptedException {
-        RpcPayload payload = new RpcPayload(String.format(
-            "{\"jsonrpc\":\"2.0\",\"method\":\"eth_call\",\"params\":[%s,\"latest\"],\"id\":1}",
-            tx.jsonString()
-        ));
-
+        return sendCall(RpcMethod.CALL, tx.jsonString());
+    }
+    
+    private byte[] sendCall(RpcMethod method, String params) throws InterruptedException {
+        RpcPayload payload = new RpcPayload(method, params, "");
+        
         log.log("-->" + payload.payload);
         InternalRpcResult response = rpc.call(payload, false);
+        log.log(response.toString());
+        System.out.println(response.toString());
         log.log("<--" + response.output);
 
 
         String rpcResult = new JsonParser().
-            parse(response.output).getAsJsonObject().get("result").getAsString();
+                parse(response.output).getAsJsonObject().get("result").getAsString();
         try {
             String resultHex = rpcResult.replace("0x", "");
             return Hex.decodeHex(resultHex);
         } catch (DecoderException dx) {
-            throw new IllegalStateException("eth_call result from kernel could not be hex decoded.  result was:" + rpcResult);
+            return rpcResult.getBytes();
         }
+    }
+
+    /**
+     * Perform the special RPC method <code>getseed</code> (synchronous).
+     *
+     * @return the bytes returned by the <code>getseed</code>
+     */
+    public byte[] getSeed() throws InterruptedException {
+        return sendCall(RpcMethod.GET_SEED, "");
+    }
+
+    /**
+     * Perform the special RPC method <code>submitseed</code> (synchronous).
+     *
+     * @return the bytes returned by the <code>submitseed</code>, which should be the so-called "mining hash" field of a block template.
+     */
+    public byte[] submitSeed(byte[] seed, byte[] publicKey) throws InterruptedException {
+        String seedString = "\"0x" + Hex.encodeHexString(seed) + '\"';
+        String publicKeyString = "\"0x" + Hex.encodeHexString(publicKey) + '\"';
+        System.out.println("I am sending: " + seedString + ", " + publicKeyString);
+        return sendCall(RpcMethod.SUBMIT_SEED, seedString + ", " + publicKeyString);
+    }
+
+    /**
+     * Perform the special RPC method <code>submitseed</code> (synchronous).
+     *
+     * @return the bytes returned by the <code>submitseed</code>, which should be the so-called "mining hash" field of a block template.
+     */
+    public byte[] submitSignature(byte[] signature, byte[] hash) throws InterruptedException {
+        String signatureString = "\"0x" + Hex.encodeHexString(signature) + '\"';
+        String hashString = "\"0x" + Hex.encodeHexString(hash) + '\"';
+        return sendCall(RpcMethod.SUBMIT_SIGNATURE, signatureString + ", " + hashString);
     }
 
     public RpcResult<Long> blockNumber() throws InterruptedException {

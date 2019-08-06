@@ -55,6 +55,8 @@ public final class TestNodeManager {
         if (this.localNode == null) {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
+            checkKernelExistsAndDeleteDBifJava();
+            
 
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();
@@ -108,6 +110,16 @@ public final class TestNodeManager {
             return NodeListener.listenTo(this.localNode);
         } else {
             throw new IllegalStateException("Attempted to get a new listener but no local node is currently running!");
+        }
+    }
+
+    private void checkKernelExistsAndDeleteDBifJava() throws IOException {
+        if (!kernelExists()) {
+            throw new TestRunnerInitializationException("Expected to find a kernel at: " + expectedKernelLocation);
+        }
+        if(nodeType == NodeType.JAVA_NODE
+                || nodeType == NodeType.PROXY_JAVA_NODE ) {
+            FileUtils.deleteDirectory(new File(expectedKernelLocation + "/custom/database"));
         }
     }
 

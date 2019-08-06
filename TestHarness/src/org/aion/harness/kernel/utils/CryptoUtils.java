@@ -27,6 +27,13 @@ public class CryptoUtils {
      * Derive the corresponding aion address, given the private key bytes.
      */
     public static byte[] deriveAddress(byte[] privateKeyBytes) throws InvalidKeySpecException {
+        return computeA0Address(derivePublicKey(privateKeyBytes));
+    }
+
+    /**
+     * Derive the corresponding aion address, given the private key bytes.
+     */
+    public static byte[] derivePublicKey(byte[] privateKeyBytes) throws InvalidKeySpecException {
         if (privateKeyBytes == null) {
             throw new NullPointerException("private key cannot be null");
         }
@@ -36,9 +43,7 @@ public class CryptoUtils {
         }
 
         EdDSAPrivateKey privateKey = new EdDSAPrivateKey(new PKCS8EncodedKeySpec(addSkPrefix(Utils.bytesToHex(privateKeyBytes))));
-        byte[] publicKeyBytes = privateKey.getAbyte();
-
-        return computeA0Address(publicKeyBytes);
+        return privateKey.getAbyte();
     }
 
     /**

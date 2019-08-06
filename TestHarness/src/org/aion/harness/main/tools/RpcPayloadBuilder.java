@@ -33,7 +33,11 @@ public final class RpcPayloadBuilder {
      * @return this builder.
      */
     public RpcPayloadBuilder params(String params) {
-        this.params = params;
+        if (this.params == null) {
+            this.params = '\"' + params + '\"';
+        } else {
+            this.params += ", \"" + params + '\"';
+        }
         return this;
     }
 

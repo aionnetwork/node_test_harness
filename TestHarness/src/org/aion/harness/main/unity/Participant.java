@@ -1,5 +1,6 @@
 package org.aion.harness.main.unity;
 
+import main.MessageSigner;
 import org.aion.avm.userlib.abi.ABIDecoder;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
@@ -13,6 +14,9 @@ import org.aion.harness.result.TransactionResult;
 import org.aion.avm.userlib.abi.ABIStreamingEncoder;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 public class Participant {
@@ -117,5 +121,19 @@ public class Participant {
 
     public Address getParticipantAddress() {
         return participantAddress;
+    }
+    
+    // Returns the seed of the newly created block
+    public byte[] createAndSendStakingBlock() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        byte[] nextSeed = getNextSeed();
+        byte[] blockHashToSign = rpc.submitSeed(nextSeed, privateKey.getPublicKeyBytes());
+        byte[] signature = MessageSigner.signMessageFromKeyBytes(privateKey.getPrivateKeyBytes(), blockHashToSign);
+        rpc.submitSignature(signature, blockHashToSign);
+        return nextSeed;
+    }
+    
+    private byte[] getNextSeed() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        byte[] oldSeed = rpc.getSeed();
+        return MessageSigner.signMessageFromKeyBytes(privateKey.getPrivateKeyBytes(), oldSeed);
     }
 }

@@ -18,7 +18,15 @@ public enum RpcMethod {
 
     GET_NONCE("eth_getTransactionCount"),
 
-    BLOCK_NUMBER("eth_blockNumber");
+    BLOCK_NUMBER("eth_blockNumber"),
+
+    CALL("eth_call"),
+
+    GET_SEED("getseed"),
+    
+    SUBMIT_SEED("submitseed"),
+    
+    SUBMIT_SIGNATURE("submitsignature");
 
     private String method;
 

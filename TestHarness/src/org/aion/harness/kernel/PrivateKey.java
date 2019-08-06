@@ -15,6 +15,7 @@ public final class PrivateKey {
     public static final int SIZE = 32;
 
     private final byte[] privateKeyBytes;
+    private final byte[] publicKeyBytes;
     private final Address address;
 
     /**
@@ -30,6 +31,7 @@ public final class PrivateKey {
             throw new IllegalArgumentException("bytes of a private key must have a length of " + SIZE);
         }
         this.privateKeyBytes = copyByteArray(privateKeyBytes);
+        this.publicKeyBytes = CryptoUtils.derivePublicKey(this.privateKeyBytes);
         this.address = new Address(CryptoUtils.deriveAddress(this.privateKeyBytes));
     }
 
@@ -52,6 +54,15 @@ public final class PrivateKey {
      */
     public byte[] getPrivateKeyBytes() {
         return copyByteArray(this.privateKeyBytes);
+    }
+
+    /**
+     * Returns the bytes of the public key.
+     *
+     * @return The bytes of the public key.
+     */
+    public byte[] getPublicKeyBytes() {
+        return copyByteArray(this.publicKeyBytes);
     }
 
     private static byte[] copyByteArray(byte[] byteArray) {
