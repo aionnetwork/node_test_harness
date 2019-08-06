@@ -819,4 +819,23 @@ public final class RPC {
         }
     }
 
+    /**
+     * Perform pure payload through RPC call. You can use this method without the other fixed method call.
+     *
+     * @param _payload the payload of the RPC call.
+     * @return result of the RPC call.
+     */
+    public String call(String _payload) throws InterruptedException {
+        RpcPayload payload = new RpcPayload(_payload);
+
+        log.log("-->" + payload.payload);
+        InternalRpcResult response = rpc.call(payload, false);
+        log.log("<--" + response.output);
+
+        return new JsonParser()
+                .parse(response.output)
+                .getAsJsonObject()
+                .get("result")
+                .getAsString();
+    }
 }
