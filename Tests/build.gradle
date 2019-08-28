@@ -27,6 +27,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation fileTree(dir: 'lib', include: ['*.jar'])
     testImplementation fileTree(dir: '../TestHarness/lib', include: ['*.jar'])
+    testCompile files('/home/nick/Desktop/node_test_harness/Tests/aion/jars/modVM.jar')
+    testCompile files('/home/nick/Desktop/node_test_harness/Tests/aion/jars/modAvmCommon.jar')
+    testCompile files('/home/nick/Desktop/node_test_harness/Tests/aion/jars/aion-types-d6eb8f7.jar')
 }
 
 test {

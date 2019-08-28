@@ -8,31 +8,28 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.ABIUtil;
-import org.aion.avm.core.util.CodeAndArguments;
-import org.aion.avm.userlib.abi.ABIDecoder;
-import org.aion.avm.userlib.abi.ABIException;
-import org.aion.avm.userlib.abi.ABIToken;
+import org.aion.avm.common.AvmContract;
+import org.aion.avm.common.IAvmStreamingEncoder;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.AvmCrossCallDispatcher;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
+import org.aion.types.AionAddress;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Rule;
@@ -63,7 +60,7 @@ public class CrossCallTest {
 
         System.out.println("Deploying avm contract...");
         this.preminedAccount.incrementNonce();
-        Address avmContract = deployAvmDispatcherContract();
+        Address avmContract = deployAvmDispatcherContract(TestHarnessAvmResources.avmUtility());
 
         System.out.println("Calling avm contract...");
         this.preminedAccount.incrementNonce();
@@ -76,7 +73,7 @@ public class CrossCallTest {
         Address precompiledContract = new Address(Hex.decodeHex("0000000000000000000000000000000000000000000000000000000000000200"));
 
         System.out.println("Deploying avm contract...");
-        Address avmContract = deployAvmDispatcherContract();
+        Address avmContract = deployAvmDispatcherContract(TestHarnessAvmResources.avmUtility());
 
         System.out.println("Calling avm contract...");
         this.preminedAccount.incrementNonce();
@@ -86,7 +83,7 @@ public class CrossCallTest {
     @Test
     public void testCallingAvmContractFromFvm() throws Exception {
         System.out.println("Deploying avm contract...");
-        Address avmContract = deployAvmDispatcherContract();
+        Address avmContract = deployAvmDispatcherContract(TestHarnessAvmResources.avmUtility());
 
         System.out.println("Deploying fvm contract...");
         this.preminedAccount.incrementNonce();
@@ -113,7 +110,7 @@ public class CrossCallTest {
     }
 
     private void callAvmDispatcher(Address dispatcher, Address target)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         TransactionResult result = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getNonce(),
@@ -127,11 +124,11 @@ public class CrossCallTest {
         sendCrossCallToAvm(result.getTransaction());
     }
 
-    private Address deployAvmDispatcherContract() throws InterruptedException, TimeoutException {
+    private Address deployAvmDispatcherContract(AvmUtility avmUtility) throws InterruptedException, TimeoutException {
         TransactionResult result = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getNonce(),
-            getAvmContractBytes(),
+            getAvmContractBytes(avmUtility),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);
@@ -271,8 +268,8 @@ public class CrossCallTest {
         return Hex.decodeHex("605060405234156100105760006000fd5b610015565b610105806100246000396000f30060506040526000356c01000000000000000000000000900463ffffffff1680638f2a06d514603157602b565b60006000fd5b3415603c5760006000fd5b605860048080806010013590359091602001909192905050605a565b005b818160405180806f73616d706c652875696e743132382900815260100150600f019050604051809103902090506c0100000000000000000000000090046040518163ffffffff166c01000000000000000000000000028152600401600060405180830381600088885af19350505050151560d45760006000fd5b5b50505600a165627a7a72305820c49126936a14c9e5246af4d9f33d7c62b2178c20b7986799854c73ef0fe047280029");
     }
 
-    private byte[] getAvmContractBytes() {
-        return new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(AvmCrossCallDispatcher.class, ABIDecoder.class, ABIToken.class, ABIException.class), new byte[0]).encodeToBytes();
+    private byte[] getAvmContractBytes(AvmUtility avmUtility) {
+        return avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_CROSS_CALL);
     }
 
     private byte[] getFvmCallDispatcherBytes(Address target) throws DecoderException {
@@ -280,10 +277,9 @@ public class CrossCallTest {
         return joinArrays(functionHash, target.getAddressBytes());
     }
 
-    private byte[] getAvmCallDispatcherBytes(Address target) {
-        byte[] encodedAddress = ABIUtil.encodeOneObject(new avm.Address(target.getAddressBytes()));
-        byte[] encodedFvmCall = ABIUtil.encodeOneObject(new byte[32]);  // these bytes don't matter
-        return joinArrays(encodedAddress, encodedFvmCall);
+    private byte[] getAvmCallDispatcherBytes(Address target) throws Exception {
+        IAvmStreamingEncoder encoder = TestHarnessAvmResources.avmUtility().newAvmStreamingEncoder(AvmVersion.VERSION_1);
+        return encoder.encodeOneAddress(new AionAddress(target.getAddressBytes())).encodeOneByteArray(new byte[32]).toBytes();
     }
 
     private byte[] joinArrays(byte[] array1, byte[] array2) {

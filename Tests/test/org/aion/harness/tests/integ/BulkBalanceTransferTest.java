@@ -15,8 +15,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.BulkRawTransactionBuilder;
 import org.aion.harness.kernel.BulkRawTransactionBuilder.TransactionType;
@@ -25,7 +24,6 @@ import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.main.util.TestHarnessHelper;
@@ -35,13 +33,14 @@ import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
 import org.aion.harness.statistics.DurationStatistics;
-import org.aion.harness.tests.contracts.avm.SimpleContract;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
 import org.aion.harness.util.SimpleLog;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Rule;
@@ -71,13 +70,13 @@ public class BulkBalanceTransferTest {
 
     @Test
     public void testMixOfBalanceTransferTransactionsFromSameSender()
-        throws InterruptedException, InvalidKeySpecException, DecoderException, TimeoutException {
+        throws Exception {
         List<Address> recipients = randomAddresses(NUMBER_OF_TRANSACTIONS);
         List<BigInteger> amounts = randomAmounts(NUMBER_OF_TRANSACTIONS);
         BigInteger initialNonce = this.preminedAccount.getNonce();
 
         List<RawTransaction> transactions = buildRandomTransactionsFromSameSender(
-            NUMBER_OF_TRANSACTIONS, recipients, amounts, initialNonce);
+            NUMBER_OF_TRANSACTIONS, recipients, amounts, initialNonce, TestHarnessAvmResources.avmUtility());
         List<TransactionReceipt> transferReceipts = sendTransactions(transactions);
 
         // Verify that the pre-mined account's balance is as expected.
@@ -97,7 +96,7 @@ public class BulkBalanceTransferTest {
 
     @Test
     public void testMixOfBalanceTransferTransactionsFromDifferentSenders()
-        throws InterruptedException, InvalidKeySpecException, DecoderException, TimeoutException {
+        throws Exception {
         List<PrivateKey> senders = randomKeys(NUMBER_OF_TRANSACTIONS);
         List<Address> senderAddresses = TestHarnessHelper.extractAddresses(senders);
         List<Address> recipients = randomAddresses(NUMBER_OF_TRANSACTIONS);
@@ -123,7 +122,7 @@ public class BulkBalanceTransferTest {
         }
 
         // Now we can send out our balance transfer transactions from our new sender accounts.
-        transactions = buildRandomTransactionsFromMultipleSenders(NUMBER_OF_TRANSACTIONS, senders, recipients, amounts);
+        transactions = buildRandomTransactionsFromMultipleSenders(NUMBER_OF_TRANSACTIONS, senders, recipients, amounts, TestHarnessAvmResources.avmUtility());
         transferReceipts = sendTransactions(transactions);
 
         // Verify that each of the sender accounts have the expected balances.
@@ -295,7 +294,7 @@ public class BulkBalanceTransferTest {
         return cost;
     }
 
-    private List<RawTransaction> buildRandomTransactionsFromMultipleSenders(int numberOfTransactions, List<PrivateKey> senders, List<Address> recipients, List<BigInteger> amounts) throws DecoderException {
+    private List<RawTransaction> buildRandomTransactionsFromMultipleSenders(int numberOfTransactions, List<PrivateKey> senders, List<Address> recipients, List<BigInteger> amounts, AvmUtility avmUtility) throws DecoderException {
         assertEquals(numberOfTransactions, senders.size());
         assertEquals(numberOfTransactions, amounts.size());
 
@@ -303,12 +302,12 @@ public class BulkBalanceTransferTest {
 
         List<RawTransaction> transactions = new ArrayList<>();
         for (int i = 0; i < numberOfTransactions; i++) {
-            transactions.add(buildTransaction(TransactionKind.fromInt(random.nextInt(3)), senders.get(i), recipients.get(i), amounts.get(i), BigInteger.ZERO));
+            transactions.add(buildTransaction(TransactionKind.fromInt(random.nextInt(3)), senders.get(i), recipients.get(i), amounts.get(i), BigInteger.ZERO, avmUtility));
         }
         return transactions;
     }
 
-    private List<RawTransaction> buildRandomTransactionsFromSameSender(int numberOfTransactions, List<Address> recipients, List<BigInteger> amounts, BigInteger initialNonce) throws DecoderException {
+    private List<RawTransaction> buildRandomTransactionsFromSameSender(int numberOfTransactions, List<Address> recipients, List<BigInteger> amounts, BigInteger initialNonce, AvmUtility avmUtility) throws DecoderException {
         assertEquals(numberOfTransactions, amounts.size());
         assertEquals(numberOfTransactions, recipients.size());
 
@@ -317,7 +316,7 @@ public class BulkBalanceTransferTest {
 
         List<RawTransaction> transactions = new ArrayList<>();
         for (int i = 0; i < numberOfTransactions; i++) {
-            transactions.add(buildTransaction(TransactionKind.fromInt(random.nextInt(3)), this.preminedAccount.getPrivateKey(), recipients.get(i), amounts.get(i), nonce));
+            transactions.add(buildTransaction(TransactionKind.fromInt(random.nextInt(3)), this.preminedAccount.getPrivateKey(), recipients.get(i), amounts.get(i), nonce, avmUtility));
             nonce = nonce.add(BigInteger.ONE);
         }
         return transactions;
@@ -338,11 +337,11 @@ public class BulkBalanceTransferTest {
         return buildResults.getResults();
     }
 
-    private RawTransaction buildTransaction(TransactionKind kind, PrivateKey sender, Address recipient, BigInteger amount, BigInteger nonce) throws DecoderException {
+    private RawTransaction buildTransaction(TransactionKind kind, PrivateKey sender, Address recipient, BigInteger amount, BigInteger nonce, AvmUtility avmUtility) throws DecoderException {
         switch (kind) {
             case REGULAR_TRANSFER: return buildTransactionToTransferToRegularAccount(sender, recipient, amount, nonce);
             case CREATE_AND_TRANSFER_FVM: return buildTransactionToCreateAndTransferToFvmContract(sender, amount, nonce);
-            case CREATE_AND_TRANSFER_AVM: return buildTransactionToCreateAndTransferToAvmContract(sender, amount, nonce);
+            case CREATE_AND_TRANSFER_AVM: return buildTransactionToCreateAndTransferToAvmContract(sender, amount, nonce, avmUtility);
             default: fail("Unknown transaction kind: " + kind);
         }
         return null;
@@ -376,11 +375,11 @@ public class BulkBalanceTransferTest {
         return result.getTransaction();
     }
 
-    private RawTransaction buildTransactionToCreateAndTransferToAvmContract(PrivateKey sender, BigInteger amount, BigInteger nonce) {
+    private RawTransaction buildTransactionToCreateAndTransferToAvmContract(PrivateKey sender, BigInteger amount, BigInteger nonce, AvmUtility avmUtility) {
         TransactionResult result = RawTransaction.buildAndSignAvmCreateTransaction(
             sender,
             nonce,
-            getAvmContractBytes(),
+            getAvmContractBytes(avmUtility),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             amount);
@@ -405,7 +404,7 @@ public class BulkBalanceTransferTest {
             + "229e6c18c098c0029");
     }
 
-    private byte[] getAvmContractBytes() {
-        return new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(SimpleContract.class), new byte[0]).encodeToBytes();
+    private byte[] getAvmContractBytes(AvmUtility avmUtility) {
+        return avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_SIMPLE);
     }
 }

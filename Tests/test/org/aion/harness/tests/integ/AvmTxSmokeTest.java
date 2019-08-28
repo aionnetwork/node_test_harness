@@ -11,28 +11,27 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.kernel.Transaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.ByteArrayHolder;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
 import org.aion.harness.util.SimpleLog;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,13 +61,13 @@ public class AvmTxSmokeTest {
 
     @Test
     public void test() throws Exception {
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
         // build contract deployment Tx
         TransactionResult deploy = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getNonce(),
-            new CodeAndArguments(
-                JarBuilder.buildJarForMainAndClasses(ByteArrayHolder.class), new byte[0])
-                .encodeToBytes(),
+            avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_BYTES_HOLDER),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO /* amount */);

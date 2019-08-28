@@ -12,20 +12,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
-import org.aion.avm.userlib.abi.ABIDecoder;
-import org.aion.avm.userlib.abi.ABIEncoder;
-import org.aion.avm.userlib.abi.ABIException;
-import org.aion.avm.userlib.abi.ABIStreamingEncoder;
-import org.aion.avm.userlib.abi.ABIToken;
+import org.aion.avm.common.AvmContract;
+import org.aion.avm.common.IAvmStreamingEncoder;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionLog;
 import org.aion.harness.main.types.TransactionReceipt;
@@ -33,12 +27,14 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.LogTarget;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
+import org.aion.types.AionAddress;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +49,12 @@ public class AvmReceiptLogTest {
     private static final long ENERGY_LIMIT = 1_234_567L;
     private static final long ENERGY_PRICE = 10_010_020_345L;
 
+    private static final byte[] DATA = new byte[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    private static final byte[] TOPIC1 = new byte[]{ 9, 5, 5, 2, 3, 8, 1 };
+    private static final byte[] TOPIC2 = new byte[]{ 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6 };
+    private static final byte[] TOPIC3 = new byte[]{ 0xf };
+    private static final byte[] TOPIC4 = new byte[0];
+
     private static RPC rpc = new RPC("127.0.0.1", "8545");
 
     @Rule
@@ -66,7 +68,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesNoLogs() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteNoLogs(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -75,7 +77,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesDataOnlyLog() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteDataOnlyLog(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -89,7 +91,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesLogWithOneTopic() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteDataLogWithOneTopic(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -103,7 +105,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesLogWithTwoTopics() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteDataLogWithTwoTopics(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -117,7 +119,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesLogWithThreeTopics() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteDataLogWithThreeTopics(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -131,7 +133,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesLogWithFourTopics() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteDataLogWithFourTopics(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -145,7 +147,7 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesMultipleLogs() throws Exception {
-        Address contract = deployLogTargetContract();
+        Address contract = deployLogTargetContract(TestHarnessAvmResources.avmUtility());
 
         TransactionReceipt receipt = callMethodWriteAllLogs(contract);
         assertTrue(receipt.transactionWasSuccessful());
@@ -184,11 +186,12 @@ public class AvmReceiptLogTest {
 
     @Test
     public void testContractWritesMultipleLogsAndAlsoLogsInternalCall() throws Exception {
-        Address callerContract = deployLogTargetContract();
-        Address calleeContract = deployLogTargetContract();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+        Address callerContract = deployLogTargetContract(avmUtility);
+        Address calleeContract = deployLogTargetContract(avmUtility);
 
         // The internal call will invoke the writeAllLogs method.
-        byte[] internalCallData = new ABIStreamingEncoder().encodeOneString("writeAllLogs").toBytes();
+        byte[] internalCallData = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1).encodeOneString("writeAllLogs").toBytes();
         TransactionReceipt receipt = callMethodWriteLogsFromInternalCallAlso(callerContract, calleeContract, internalCallData);
         assertTrue(receipt.transactionWasSuccessful());
 
@@ -267,103 +270,104 @@ public class AvmReceiptLogTest {
     }
 
     private TransactionReceipt callMethodWriteLogsFromInternalCallAlso(Address caller, Address callee, byte[] data)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(caller, "writeLogsFromInternalCallAlso", callee.getAddressBytes(), data);
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteAllLogs(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeAllLogs");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteDataLogWithFourTopics(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeDataLogWithFourTopics");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteDataLogWithThreeTopics(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeDataLogWithThreeTopics");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteDataLogWithTwoTopics(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeDataLogWithTwoTopics");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteDataLogWithOneTopic(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeDataLogWithOneTopic");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteNoLogs(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeNoLogs");
         return sendTransaction(transaction);
     }
 
     private TransactionReceipt callMethodWriteDataOnlyLog(Address contract)
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         RawTransaction transaction = makeCallTransaction(contract, "writeDataOnlyLog");
         return sendTransaction(transaction);
     }
 
     private static void assertIsDataOnlyLog(Address contract, TransactionLog log) {
         assertEquals(contract, log.address);
-        assertArrayEquals(LogTarget.data, log.copyOfData());
+        assertArrayEquals(DATA, log.copyOfData());
         assertTrue(log.copyOfTopics().isEmpty());
     }
 
     private static void assertIsLogWithOneTopic(Address contract, TransactionLog log) {
         assertEquals(contract, log.address);
-        assertArrayEquals(LogTarget.data, log.copyOfData());
+        assertArrayEquals(DATA, log.copyOfData());
 
         List<byte[]> topics = log.copyOfTopics();
         assertEquals(1, topics.size());
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic1), topics.get(0));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC1), topics.get(0));
     }
 
     private static void assertIsLogWithTwoTopics(Address contract, TransactionLog log) {
         assertEquals(contract, log.address);
-        assertArrayEquals(LogTarget.data, log.copyOfData());
+        assertArrayEquals(DATA, log.copyOfData());
 
         List<byte[]> topics = log.copyOfTopics();
         assertEquals(2, topics.size());
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic1), topics.get(0));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic2), topics.get(1));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC1), topics.get(0));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC2), topics.get(1));
     }
 
     private static void assertIsLogWithThreeTopics(Address contract, TransactionLog log) {
         assertEquals(contract, log.address);
-        assertArrayEquals(LogTarget.data, log.copyOfData());
+        assertArrayEquals(DATA, log.copyOfData());
 
         List<byte[]> topics = log.copyOfTopics();
         assertEquals(3, topics.size());
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic1), topics.get(0));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic2), topics.get(1));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic3), topics.get(2));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC1), topics.get(0));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC2), topics.get(1));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC3), topics.get(2));
     }
 
     private static void assertIsLogWithFourTopics(Address contract, TransactionLog log) {
         assertEquals(contract, log.address);
-        assertArrayEquals(LogTarget.data, log.copyOfData());
+        assertArrayEquals(DATA, log.copyOfData());
 
         List<byte[]> topics = log.copyOfTopics();
         assertEquals(4, topics.size());
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic1), topics.get(0));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic2), topics.get(1));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic3), topics.get(2));
-        assertArrayEquals(padOrTruncateTo32bytes(LogTarget.topic4), topics.get(3));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC1), topics.get(0));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC2), topics.get(1));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC3), topics.get(2));
+        assertArrayEquals(padOrTruncateTo32bytes(TOPIC4), topics.get(3));
     }
 
-    private RawTransaction makeCallTransaction(Address contract, String method) {
-        byte[] data = ABIEncoder.encodeOneString(method);
+    private RawTransaction makeCallTransaction(Address contract, String method) throws Exception {
+        IAvmStreamingEncoder encoder = TestHarnessAvmResources.avmUtility().newAvmStreamingEncoder(AvmVersion.VERSION_1);
+        byte[] data = encoder.encodeOneString(method).toBytes();
 
         TransactionResult buildResult = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -378,8 +382,9 @@ public class AvmReceiptLogTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeCallTransaction(Address contract, String method, byte[] internalContract, byte[] internalData) {
-        byte[] data = new ABIStreamingEncoder().encodeOneString(method).encodeOneAddress(new avm.Address(internalContract)).encodeOneByteArray(internalData).toBytes();
+    private RawTransaction makeCallTransaction(Address contract, String method, byte[] internalContract, byte[] internalData) throws Exception {
+        IAvmStreamingEncoder encoder = TestHarnessAvmResources.avmUtility().newAvmStreamingEncoder(AvmVersion.VERSION_1);
+        byte[] data = encoder.encodeOneString(method).encodeOneAddress(new AionAddress(internalContract)).encodeOneByteArray(internalData).toBytes();
 
         TransactionResult buildResult = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -394,11 +399,11 @@ public class AvmReceiptLogTest {
         return buildResult.getTransaction();
     }
 
-    private Address deployLogTargetContract() throws InterruptedException, TimeoutException {
+    private Address deployLogTargetContract(AvmUtility avmUtility) throws InterruptedException, TimeoutException {
         TransactionResult result = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getAndIncrementNonce(),
-            getAvmContractBytes(),
+            getAvmContractBytes(avmUtility),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);
@@ -441,8 +446,8 @@ public class AvmReceiptLogTest {
         return receiptResult.getResult();
     }
 
-    private byte[] getAvmContractBytes() {
-        return new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(LogTarget.class, ABIDecoder.class, ABIToken.class, ABIException.class), new byte[0]).encodeToBytes();
+    private byte[] getAvmContractBytes(AvmUtility avmUtility) {
+        return avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_LOG_TARGET);
     }
 
     private static byte[] padOrTruncateTo32bytes(byte[] bytes) {

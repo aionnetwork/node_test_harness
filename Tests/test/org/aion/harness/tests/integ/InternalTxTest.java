@@ -8,12 +8,8 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
-import org.aion.avm.userlib.abi.ABIDecoder;
-import org.aion.avm.userlib.abi.ABIEncoder;
-import org.aion.avm.userlib.abi.ABIException;
-import org.aion.avm.userlib.abi.ABIStreamingEncoder;
+import org.aion.avm.common.AvmContract;
+import org.aion.avm.common.IAvmStreamingEncoder;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
@@ -26,12 +22,13 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.InternalTxTarget;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,39 +52,41 @@ public class InternalTxTest {
     
     @Test
     public void testAvmContractPass() throws Exception {
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
 
         System.out.println("Deploying avm contract...");
-        TransactionReceipt receipt = deployAvmContract();
+        TransactionReceipt receipt = deployAvmContract(avmUtility);
         assertTrue(receipt.transactionWasSuccessful());
         Address avmContract = receipt.getAddressOfDeployedContract().get();
         assertNotNull(avmContract);
 
         System.out.println("Calling avm contract...");
         this.preminedAccount.incrementNonce();
-        receipt = callAvmContract(avmContract, "callSelfToGetSix", 9, true);
+        receipt = callAvmContract(avmContract, "callSelfToGetSix", 9, true, avmUtility);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
     @Test
     public void testAvmContractFail() throws Exception {
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
 
         System.out.println("Deploying avm contract...");
-        TransactionReceipt receipt = deployAvmContract();
+        TransactionReceipt receipt = deployAvmContract(avmUtility);
         assertTrue(receipt.transactionWasSuccessful());
         Address avmContract = receipt.getAddressOfDeployedContract().get();
         assertNotNull(avmContract);
 
         System.out.println("Calling avm contract...");
         this.preminedAccount.incrementNonce();
-        receipt = callAvmContract(avmContract, "callSelfToGetSix", 10, false);
+        receipt = callAvmContract(avmContract, "callSelfToGetSix", 10, false, avmUtility);
         assertFalse(receipt.transactionWasSuccessful());
     }
 
-    private TransactionReceipt deployAvmContract() throws InterruptedException, TimeoutException {
+    private TransactionReceipt deployAvmContract(AvmUtility avmUtility) throws InterruptedException, TimeoutException {
         TransactionResult result = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getNonce(),
-            getAvmContractBytes(),
+            getAvmContractBytes(avmUtility),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);
@@ -97,9 +96,9 @@ public class InternalTxTest {
     }
 
     private TransactionReceipt
-    callAvmContract(Address contract, String methodName, int parameter, boolean shouldSucceed)
+    callAvmContract(Address contract, String methodName, int parameter, boolean shouldSucceed, AvmUtility avmUtility)
     throws InterruptedException, TimeoutException {
-        ABIStreamingEncoder encoder = new ABIStreamingEncoder();
+        IAvmStreamingEncoder encoder = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1);
         byte[] data = encoder.encodeOneString(methodName).encodeOneInteger(parameter).toBytes();
         TransactionResult result = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -225,8 +224,7 @@ public class InternalTxTest {
         return receiptResult.getResult();
     }
 
-    private byte[] getAvmContractBytes() {
-        return new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(InternalTxTarget.class,
-            ABIDecoder.class, ABIEncoder.class, ABIException.class), new byte[0]).encodeToBytes();
+    private byte[] getAvmContractBytes(AvmUtility avmUtility) {
+        return avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_INTERNAL_CALL);
     }
 }

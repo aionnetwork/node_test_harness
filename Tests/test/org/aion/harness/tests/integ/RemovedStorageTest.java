@@ -7,35 +7,27 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.ABIUtil;
-import org.aion.avm.core.util.CodeAndArguments;
-import org.aion.avm.userlib.abi.ABIDecoder;
-import org.aion.avm.userlib.abi.ABIEncoder;
-import org.aion.avm.userlib.abi.ABIException;
-import org.aion.avm.userlib.abi.ABIStreamingEncoder;
-import org.aion.avm.userlib.abi.ABIToken;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.RemoveStorageTarget;
-import org.aion.harness.tests.contracts.avm.StorageTargetClinitTarget;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
 import org.aion.harness.util.SimpleLog;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,277 +53,319 @@ public class RemovedStorageTest {
 
     @Test
     public void putResetVerifyStatic() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        RawTransaction transaction = makeCallTransaction(contract, "putStatic");
+        RawTransaction transaction = makeCallTransaction(contract, "putStatic", avmUtility);
         receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
 
-        transaction = makeCallTransaction(contract, "resetStatic");
+        transaction = makeCallTransaction(contract, "resetStatic", avmUtility);
         receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
 
-        transaction = makeCallTransaction(contract, "verifyStatic");
+        transaction = makeCallTransaction(contract, "verifyStatic", avmUtility);
         receipt = sendGetStaticTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
     @Test
     public void putResetPut() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putResetPut(contract);
+        putResetPut(contract, avmUtility);
     }
 
     @Test
     public void putZeroResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthZero(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageLengthZero(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putZeroResetResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthZero(contract);
-        resetStorage(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageLengthZero(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putOneResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthOne(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageLengthOne(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putOneResetResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthOne(contract);
-        resetStorage(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageLengthOne(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void resetResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        resetStorage(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        resetStorage(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void resetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putZeroVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthZero(contract);
-        validateStoragePreviousTxLength(contract, 0);
+        putStorageLengthZero(contract, avmUtility);
+        validateStoragePreviousTxLength(contract, 0, avmUtility);
     }
 
     @Test
     public void putOneVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageLengthOne(contract);
-        validateStoragePreviousTxLength(contract, 1);
+        putStorageLengthOne(contract, avmUtility);
+        validateStoragePreviousTxLength(contract, 1, avmUtility);
     }
 
     @Test
     public void putResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageAddress(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageAddress(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putAddressVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageAddress(contract);
-        validateStoragePreviousTxLength(contract, 32);
+        putStorageAddress(contract, avmUtility);
+        validateStoragePreviousTxLength(contract, 32, avmUtility);
     }
 
     @Test
     public void putAddressResetResetVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putStorageAddress(contract);
-        resetStorage(contract);
-        resetStorage(contract);
-        verifyAllStorageRemoved(contract);
+        putStorageAddress(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        resetStorage(contract, avmUtility);
+        verifyAllStorageRemoved(contract, avmUtility);
     }
 
     @Test
     public void putArbitrarySameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[]{ 0, 1, 2, 3, 4, 5 };
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
     }
 
     @Test
     public void putZeroSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[0];
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
     }
 
     @Test
     public void putOneSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[] { 0 };
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
     }
 
     @Test
     public void putNullSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        setStorageSameKey(contract, null);
-        getStorageOneKey(contract, -1);
+        setStorageSameKey(contract, null, avmUtility);
+        getStorageOneKey(contract, -1, avmUtility);
     }
 
     @Test
     public void putArbitrarySameKeyVerifyNullSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[]{ 0, 1, 2, 3, 4, 5 };
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
-        setStorageSameKey(contract, null);
-        getStorageOneKey(contract, -1);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
+        setStorageSameKey(contract, null, avmUtility);
+        getStorageOneKey(contract, -1, avmUtility);
     }
 
     @Test
     public void putZeroSameKeyVerifyNullSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[0];
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
-        setStorageSameKey(contract, null);
-        getStorageOneKey(contract, -1);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
+        setStorageSameKey(contract, null, avmUtility);
+        getStorageOneKey(contract, -1, avmUtility);
     }
 
     @Test
     public void putOneSameKeyVerifyNullSameKeyVerify() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
         byte[] b = new byte[]{ 0 };
-        setStorageSameKey(contract, b);
-        getStorageOneKey(contract, b.length);
-        setStorageSameKey(contract, null);
-        getStorageOneKey(contract, -1);
+        setStorageSameKey(contract, b, avmUtility);
+        getStorageOneKey(contract, b.length, avmUtility);
+        setStorageSameKey(contract, null, avmUtility);
+        getStorageOneKey(contract, -1, avmUtility);
     }
 
     @Test
     public void removeStorageClinit() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateClinitTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateClinitTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
@@ -339,118 +373,122 @@ public class RemovedStorageTest {
 
     @Test
     public void removeStorageReentrant() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        byte[] b = new ABIStreamingEncoder().encodeOneString("resetStorage").toBytes();
-        reentrantCallAfterPut(contract, b);
+        byte[] b = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1).encodeOneString("resetStorage").toBytes();
+        reentrantCallAfterPut(contract, b, avmUtility);
     }
 
     @Test
     public void multipleGetSetVerifiesInSameCall() throws Exception {
-        RawTransaction deployTransaction = makeAvmCreateTransaction();
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+
+        RawTransaction deployTransaction = makeAvmCreateTransaction(avmUtility);
         TransactionReceipt receipt = sendTransaction(deployTransaction);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());
         Address contract = receipt.getAddressOfDeployedContract().get();
 
-        putZeroResetVerify(contract);
-        putOneResetVerify(contract);
-        putAddressResetVerify(contract);
-        ResetResetVerify(contract);
+        putZeroResetVerify(contract, avmUtility);
+        putOneResetVerify(contract, avmUtility);
+        putAddressResetVerify(contract, avmUtility);
+        ResetResetVerify(contract, avmUtility);
 
     }
 
-    private void putStorageLengthZero(Address contract)
+    private void putStorageLengthZero(Address contract, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putStorageLengthZero");
+        RawTransaction transaction = makeCallTransaction(contract, "putStorageLengthZero", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void resetStorage(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "resetStorage");
+    private void resetStorage(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "resetStorage", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void verifyAllStorageRemoved(Address contract)
+    private void verifyAllStorageRemoved(Address contract, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "verifyAllStorageRemoved");
+        RawTransaction transaction = makeCallTransaction(contract, "verifyAllStorageRemoved", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putStorageLengthOne(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putStorageLengthOne");
+    private void putStorageLengthOne(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "putStorageLengthOne", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putResetPut(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putResetPut");
+    private void putResetPut(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "putResetPut", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putStorageAddress(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putStorageAddress");
+    private void putStorageAddress(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "putStorageAddress", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void validateStoragePreviousTxLength(Address contract, int i)
+    private void validateStoragePreviousTxLength(Address contract, int i, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "validateStoragePreviousTxLength", i);
+        RawTransaction transaction = makeCallTransaction(contract, "validateStoragePreviousTxLength", i, avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void getStorageOneKey(Address contract, int i)
+    private void getStorageOneKey(Address contract, int i, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "getStorageOneKey", i);
+        RawTransaction transaction = makeCallTransaction(contract, "getStorageOneKey", i, avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void setStorageSameKey(Address contract, byte[] b)
+    private void setStorageSameKey(Address contract, byte[] b, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "setStorageSameKey", b);
+        RawTransaction transaction = makeCallTransaction(contract, "setStorageSameKey", b, avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void reentrantCallAfterPut(Address contract, byte[] b)
+    private void reentrantCallAfterPut(Address contract, byte[] b, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "reentrantCallAfterPut", b);
+        RawTransaction transaction = makeCallTransaction(contract, "reentrantCallAfterPut", b, avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putZeroResetVerify(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putZeroResetVerify");
+    private void putZeroResetVerify(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "putZeroResetVerify", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putOneResetVerify(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putOneResetVerify");
+    private void putOneResetVerify(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "putOneResetVerify", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void putAddressResetVerify(Address contract)
+    private void putAddressResetVerify(Address contract, AvmUtility avmUtility)
         throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "putAddressResetVerify");
+        RawTransaction transaction = makeCallTransaction(contract, "putAddressResetVerify", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
 
-    private void ResetResetVerify(Address contract) throws InterruptedException, TimeoutException {
-        RawTransaction transaction = makeCallTransaction(contract, "ResetResetVerify");
+    private void ResetResetVerify(Address contract, AvmUtility avmUtility) throws InterruptedException, TimeoutException {
+        RawTransaction transaction = makeCallTransaction(contract, "ResetResetVerify", avmUtility);
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.transactionWasSuccessful());
     }
@@ -513,8 +551,8 @@ public class RemovedStorageTest {
         return receiptResult.getResult();
     }
 
-    private RawTransaction makeCallTransaction(Address contract, String method, byte[] b) {
-        byte[] data = new ABIStreamingEncoder().encodeOneString(method).encodeOneByteArray(b).toBytes();
+    private RawTransaction makeCallTransaction(Address contract, String method, byte[] b, AvmUtility avmUtility) {
+        byte[] data = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1).encodeOneString(method).encodeOneByteArray(b).toBytes();
 
         TransactionResult buildResult = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -529,8 +567,8 @@ public class RemovedStorageTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeCallTransaction(Address contract, String method, int i) {
-        byte[] data = ABIUtil.encodeMethodArguments(method, i);
+    private RawTransaction makeCallTransaction(Address contract, String method, int i, AvmUtility avmUtility) {
+        byte[] data = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1).encodeOneString(method).encodeOneInteger(i).toBytes();
 
         TransactionResult buildResult = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -545,8 +583,8 @@ public class RemovedStorageTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeCallTransaction(Address contract, String method) {
-        byte[] data = ABIEncoder.encodeOneString(method);
+    private RawTransaction makeCallTransaction(Address contract, String method, AvmUtility avmUtility) {
+        byte[] data = avmUtility.newAvmStreamingEncoder(AvmVersion.VERSION_1).encodeOneString(method).toBytes();
 
         TransactionResult buildResult = RawTransaction.buildAndSignGeneralTransaction(
             this.preminedAccount.getPrivateKey(),
@@ -561,11 +599,11 @@ public class RemovedStorageTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeAvmCreateTransaction() {
+    private RawTransaction makeAvmCreateTransaction(AvmUtility avmUtility) {
         TransactionResult buildResult = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getAndIncrementNonce(),
-            new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(RemoveStorageTarget.class, ABIDecoder.class, ABIException.class, ABIToken.class), new byte[0]).encodeToBytes(),
+            avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_REMOVED_STORAGE),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);
@@ -574,11 +612,11 @@ public class RemovedStorageTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeAvmCreateClinitTransaction() {
+    private RawTransaction makeAvmCreateClinitTransaction(AvmUtility avmUtility) {
         TransactionResult buildResult = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getAndIncrementNonce(),
-            new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(StorageTargetClinitTarget.class, ABIDecoder.class, ABIException.class, ABIToken.class), new byte[0]).encodeToBytes(),
+            avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_CLINIT),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);

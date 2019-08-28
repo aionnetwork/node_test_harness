@@ -8,8 +8,7 @@ import java.math.BigInteger;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.RawTransaction;
@@ -17,20 +16,20 @@ import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.SimpleContract;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
 import org.aion.harness.util.SimpleLog;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Rule;
@@ -136,12 +135,12 @@ public class BalanceTransferTest {
      */
     @Test
     public void testTransferBalanceToAvmContractUponCreation()
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         BigInteger originalBalance = getPreminedBalance();
         BigInteger amount = BigInteger.TEN.pow(17).add(BigInteger.valueOf(298_365_712));
 
         log.log("Creating the avm contract...");
-        RawTransaction transaction = buildTransactionToCreateAndTransferToAvmContract(amount);
+        RawTransaction transaction = buildTransactionToCreateAndTransferToAvmContract(amount, TestHarnessAvmResources.avmUtility());
         TransactionReceipt createReceipt = sendTransaction(transaction);
         assertTrue(createReceipt.getAddressOfDeployedContract().isPresent());
 
@@ -162,12 +161,12 @@ public class BalanceTransferTest {
      */
     @Test
     public void testTransferBalanceToAvmContractAfterCreation()
-        throws InterruptedException, TimeoutException {
+        throws Exception {
         BigInteger amount = BigInteger.TEN.pow(12).add(BigInteger.valueOf(2_384_956));
 
         // Create the contract.
         log.log("Creating the avm contract...");
-        RawTransaction transaction = buildTransactionToCreateAvmContract();
+        RawTransaction transaction = buildTransactionToCreateAvmContract(TestHarnessAvmResources.avmUtility());
         TransactionReceipt createReceipt = sendTransaction(transaction);
         assertTrue(createReceipt.getAddressOfDeployedContract().isPresent());
 
@@ -359,15 +358,15 @@ public class BalanceTransferTest {
         return result.getTransaction();
     }
 
-    private RawTransaction buildTransactionToCreateAvmContract() {
-        return buildTransactionToCreateAndTransferToAvmContract(BigInteger.ZERO);
+    private RawTransaction buildTransactionToCreateAvmContract(AvmUtility avmUtility) {
+        return buildTransactionToCreateAndTransferToAvmContract(BigInteger.ZERO, avmUtility);
     }
 
-    private RawTransaction buildTransactionToCreateAndTransferToAvmContract(BigInteger amount) {
+    private RawTransaction buildTransactionToCreateAndTransferToAvmContract(BigInteger amount, AvmUtility avmUtility) {
         TransactionResult result = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getNonce(),
-            getAvmContractBytes(),
+            getAvmContractBytes(avmUtility),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             amount);
@@ -392,8 +391,8 @@ public class BalanceTransferTest {
             + "229e6c18c098c0029");
     }
 
-    private byte[] getAvmContractBytes() {
-        return new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(SimpleContract.class), new byte[0]).encodeToBytes();
+    private byte[] getAvmContractBytes(AvmUtility avmUtility) {
+        return avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_SIMPLE);
     }
 
     private byte[] getNonPayableFunctionCallEncoding() throws DecoderException {

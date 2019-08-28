@@ -1,49 +1,30 @@
 package org.aion.harness.tests.integ;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.Address;
-import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.RawTransaction;
-import org.aion.harness.kernel.Transaction;
-import org.aion.harness.main.LocalNode;
-import org.aion.harness.main.Network;
-import org.aion.harness.main.NodeConfigurations;
-import org.aion.harness.main.NodeConfigurations.DatabaseOption;
-import org.aion.harness.main.NodeFactory;
 import org.aion.harness.main.NodeFactory.NodeType;
-import org.aion.harness.main.NodeListener;
-import org.aion.harness.main.ProhibitConcurrentHarness;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
-import org.aion.harness.result.Result;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
 import org.aion.harness.tests.contracts.Assertions;
-import org.aion.harness.tests.contracts.avm.AvmFailureModes;
-import org.aion.harness.tests.contracts.avm.ByteArrayHolder;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
 import org.aion.harness.util.SimpleLog;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +54,7 @@ public class AvmFailuresTest {
 
     @Test
     public void testPass() throws Exception {
-        Address contract = deployContract();
+        Address contract = deployContract(TestHarnessAvmResources.avmUtility());
         
         // Send the "pass" (0).
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)0);
@@ -85,7 +66,7 @@ public class AvmFailuresTest {
 
     @Test
     public void testFailException() throws Exception {
-        Address contract = deployContract();
+        Address contract = deployContract(TestHarnessAvmResources.avmUtility());
         
         // Send the "fail - exception" (1).
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)1);
@@ -97,7 +78,7 @@ public class AvmFailuresTest {
 
     @Test
     public void testFailRevert() throws Exception {
-        Address contract = deployContract();
+        Address contract = deployContract(TestHarnessAvmResources.avmUtility());
         
         // Send the "fail - revert" (2).
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)2);
@@ -109,7 +90,7 @@ public class AvmFailuresTest {
 
     @Test
     public void testFailEnergy() throws Exception {
-        Address contract = deployContract();
+        Address contract = deployContract(TestHarnessAvmResources.avmUtility());
         
         // Send the "fail - out of energy" (3).
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)3);
@@ -120,14 +101,12 @@ public class AvmFailuresTest {
     }
 
 
-    private Address deployContract() throws InterruptedException, TimeoutException {
+    private Address deployContract(AvmUtility avmUtility) throws InterruptedException, TimeoutException {
         // build contract deployment Tx
         TransactionResult deploy = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getAndIncrementNonce(),
-            new CodeAndArguments(
-                JarBuilder.buildJarForMainAndClasses(AvmFailureModes.class), new byte[0])
-                .encodeToBytes(),
+            avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_FAILURE_MODES),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO /* amount */);

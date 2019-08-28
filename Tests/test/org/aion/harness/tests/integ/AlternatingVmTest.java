@@ -7,13 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.aion.avm.core.dappreading.JarBuilder;
-import org.aion.avm.core.util.CodeAndArguments;
+import org.aion.avm.common.AvmContract;
 import org.aion.harness.kernel.RawTransaction;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.event.PrepackagedLogEvents;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.main.util.TestHarnessHelper;
@@ -22,12 +20,13 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.result.TransactionResult;
-import org.aion.harness.tests.contracts.avm.SimpleContract;
 import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.internal.PrepackagedLogEventsFactory;
+import org.aion.vm.AvmUtility;
+import org.aion.vm.AvmVersion;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Rule;
@@ -59,7 +58,8 @@ public class AlternatingVmTest {
      */
     @Test
     public void testAlternatingCreationTransactions() throws Exception {
-        List<RawTransaction> transactions = makeAlternatingAvmFvmContractCreateTransactions(50);
+        AvmUtility avmUtility = TestHarnessAvmResources.avmUtility();
+        List<RawTransaction> transactions = makeAlternatingAvmFvmContractCreateTransactions(50, avmUtility);
         sendTransactions(transactions);
     }
 
@@ -98,11 +98,11 @@ public class AlternatingVmTest {
         return events;
     }
 
-    private List<RawTransaction> makeAlternatingAvmFvmContractCreateTransactions(int totalNum) throws DecoderException {
+    private List<RawTransaction> makeAlternatingAvmFvmContractCreateTransactions(int totalNum, AvmUtility avmUtility) throws DecoderException {
         List<RawTransaction> transactions = new ArrayList<>();
         for (int i = 0; i < totalNum; i++) {
             if (i % 2 == 0) {
-                transactions.add(makeAvmTransaction());
+                transactions.add(makeAvmTransaction(avmUtility));
             } else {
                 transactions.add(makeFvmTransaction());
             }
@@ -124,11 +124,11 @@ public class AlternatingVmTest {
         return buildResult.getTransaction();
     }
 
-    private RawTransaction makeAvmTransaction() {
+    private RawTransaction makeAvmTransaction(AvmUtility avmUtility) {
         TransactionResult buildResult = RawTransaction.buildAndSignAvmCreateTransaction(
             this.preminedAccount.getPrivateKey(),
             this.preminedAccount.getAndIncrementNonce(),
-            new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(SimpleContract.class), new byte[0]).encodeToBytes(),
+            avmUtility.produceAvmJarBytes(AvmVersion.VERSION_1, AvmContract.HARNESS_SIMPLE),
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO);
