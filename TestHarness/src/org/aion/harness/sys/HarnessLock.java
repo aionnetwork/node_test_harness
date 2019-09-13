@@ -35,7 +35,10 @@ public class HarnessLock {
     private volatile FileChannel channel;
     private volatile FileLock lock;
 
-    /** The dir in which lock files are stored */
+    /**
+     * The dir in which lock files are stored.  See also:
+     * https://www.tldp.org/LDP/sag/html/var-fs.html
+     */
     public static final String DEFAULT_FS_PREFIX = "/var/lock/AionTestHarness";
 
     /**
@@ -60,6 +63,9 @@ public class HarnessLock {
         this.log = new SimpleLog(getClass().getName());
         this.lock = null;
         this.fsPrefix = prefix;
+
+        // ensure lock dir exists
+        new File(DEFAULT_FS_PREFIX).mkdirs(); // ensure lock dir exists
     }
 
     /**
