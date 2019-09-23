@@ -69,7 +69,8 @@ public class AvmTxSmokeTest {
                 .encodeToBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO /* amount */);
+            BigInteger.ZERO, /* amount */
+            null);
 
         // send contract deployment Tx
         TransactionReceipt deployReceipt = sendTransaction(transaction);
@@ -89,7 +90,8 @@ public class AvmTxSmokeTest {
         byte[] newData1 = new byte[] { 0x21, 0x00, 0x01, 0x61 };
         SignedTransaction tx1 =
             SignedTransaction.newGeneralTransaction(this.preminedAccount.getPrivateKey(), this.preminedAccount.getNonce(), contract,
-                newData1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */);
+                newData1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO, /* amount */
+                null);
         TransactionReceipt tx1Receipt = sendTransaction(tx1);
         assertThat(tx1Receipt, is(not(nullValue()))); // can get more rigourous with this
 
@@ -105,7 +107,8 @@ public class AvmTxSmokeTest {
         byte[] newData2 = new byte[] { 0x21, 0x00, 0x04, 0x41, 0x53, 0x44, 0x46 };
         SignedTransaction tx2 =
             SignedTransaction.newGeneralTransaction(this.preminedAccount.getPrivateKey(), this.preminedAccount.getNonce(), contract,
-                newData2, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */);
+                newData2, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO, /* amount */
+                null);
         TransactionReceipt tx2Receipt = sendTransaction(tx2);
         assertThat(tx2Receipt, is(not(nullValue()))); // can get more rigourous with this
 

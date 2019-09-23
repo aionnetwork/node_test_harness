@@ -108,7 +108,7 @@ public class CrossCallTest {
             getFvmCallDispatcherBytes(target),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         sendCrossCallToFvm(transaction);
     }
@@ -122,7 +122,7 @@ public class CrossCallTest {
             getAvmCallDispatcherBytes(target),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         sendCrossCallToAvm(transaction);
     }
@@ -134,7 +134,7 @@ public class CrossCallTest {
             getAvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         TransactionReceipt receipt = sendTransaction(transaction);
         return receipt.getAddressOfDeployedContract().get();
@@ -149,7 +149,7 @@ public class CrossCallTest {
             getFvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         TransactionReceipt receipt = sendTransaction(transaction);
         return receipt.getAddressOfDeployedContract().get();

@@ -525,7 +525,7 @@ public class RemovedStorageTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeCallTransaction(Address contract, String method, int i) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -538,7 +538,7 @@ public class RemovedStorageTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeCallTransaction(Address contract, String method) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -551,7 +551,7 @@ public class RemovedStorageTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeAvmCreateTransaction() throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -561,7 +561,7 @@ public class RemovedStorageTest {
             new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(RemoveStorageTarget.class, ABIDecoder.class, ABIException.class, ABIToken.class), new byte[0]).encodeToBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeAvmCreateClinitTransaction() throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -571,6 +571,6 @@ public class RemovedStorageTest {
             new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(StorageTargetClinitTarget.class, ABIDecoder.class, ABIException.class, ABIToken.class), new byte[0]).encodeToBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 }

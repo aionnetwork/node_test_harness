@@ -374,7 +374,7 @@ public class AvmReceiptLogTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeCallTransaction(Address contract, String method, byte[] internalContract, byte[] internalData) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -387,7 +387,7 @@ public class AvmReceiptLogTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private Address deployLogTargetContract() throws InterruptedException, TimeoutException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -397,7 +397,7 @@ public class AvmReceiptLogTest {
             getAvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         TransactionReceipt receipt = sendTransaction(transaction);
         assertTrue(receipt.getAddressOfDeployedContract().isPresent());

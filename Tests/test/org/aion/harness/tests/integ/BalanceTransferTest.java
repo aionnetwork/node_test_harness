@@ -294,7 +294,7 @@ public class BalanceTransferTest {
             new byte[]{ 0x1, 0x2, 0x3 }, // we give a non-empty array here so that we actually invoke the main method.
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToTransferFundsToAccount(Address account, BigInteger amount) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -305,7 +305,7 @@ public class BalanceTransferTest {
             new byte[0],
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToTransferFundsToPayableFunction(Address contract, BigInteger amount) throws DecoderException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -316,7 +316,7 @@ public class BalanceTransferTest {
             getPayableFunctionCallEncoding(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToTransferFundsToNonPayableFunction(Address contract, BigInteger amount) throws DecoderException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -327,7 +327,7 @@ public class BalanceTransferTest {
             getNonPayableFunctionCallEncoding(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToCreateFvmContract() throws DecoderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
@@ -342,7 +342,7 @@ public class BalanceTransferTest {
             getFvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToCreateAvmContract() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
@@ -356,7 +356,7 @@ public class BalanceTransferTest {
             getAvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     /**

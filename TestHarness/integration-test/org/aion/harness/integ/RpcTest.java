@@ -735,7 +735,8 @@ public class RpcTest {
     }
 
     private void fundAccount(Address address) throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        SignedTransaction transaction = SignedTransaction.newGeneralTransaction(preminedPrivateKey, BigInteger.ZERO, address, new byte[0], 50_000L, 10_000_000_000L, BigInteger.valueOf(10_000_000_000_000_000L));
+        SignedTransaction transaction = SignedTransaction.newGeneralTransaction(preminedPrivateKey, BigInteger.ZERO, address, new byte[0], 50_000L, 10_000_000_000L, BigInteger.valueOf(10_000_000_000_000_000L),
+            null);
         RpcResult<ReceiptHash> result = this.rpc.sendSignedTransaction(transaction);
         Assert.assertTrue(result.isSuccess());
     }
@@ -762,7 +763,8 @@ public class RpcTest {
 
     private SignedTransaction constructTransaction(PrivateKey senderPrivateKey, Address destination, BigInteger value, BigInteger nonce) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         return SignedTransaction
-            .newGeneralTransaction(senderPrivateKey, nonce, destination, new byte[0], energyLimit, energyPrice, value);
+            .newGeneralTransaction(senderPrivateKey, nonce, destination, new byte[0], energyLimit, energyPrice, value,
+                null);
     }
 
     private static void deleteLogs() throws IOException {

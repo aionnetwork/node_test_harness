@@ -357,7 +357,7 @@ public class BulkBalanceTransferTest {
             new byte[0],
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToCreateAndTransferToFvmContract(PrivateKey sender, BigInteger amount, BigInteger nonce) throws DecoderException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -368,7 +368,7 @@ public class BulkBalanceTransferTest {
             getFvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     private SignedTransaction buildTransactionToCreateAndTransferToAvmContract(PrivateKey sender, BigInteger amount, BigInteger nonce) throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -378,7 +378,7 @@ public class BulkBalanceTransferTest {
             getAvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     /**

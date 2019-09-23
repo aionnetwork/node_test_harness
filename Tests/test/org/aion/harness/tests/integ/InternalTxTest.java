@@ -93,7 +93,7 @@ public class InternalTxTest {
             getAvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         return sendDeployment(transaction);
     }
@@ -110,7 +110,7 @@ public class InternalTxTest {
             data,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
 
         return
             shouldSucceed ? sendCallToSucceed(transaction) : sendCallToFail(transaction);

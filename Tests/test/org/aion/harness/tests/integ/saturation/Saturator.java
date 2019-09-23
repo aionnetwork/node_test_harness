@@ -37,7 +37,8 @@ public final class Saturator implements Callable<SaturationReport> {
             for (int i = 0; i < SaturationTest.NUM_TRANSACTIONS; i++) {
                 BigInteger nonce = BigInteger.valueOf(i);
 
-                SignedTransaction transaction = SignedTransaction.newGeneralTransaction(this.senderKey, nonce, destination, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.TRANSFER_AMOUNT);
+                SignedTransaction transaction = SignedTransaction.newGeneralTransaction(this.senderKey, nonce, destination, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.TRANSFER_AMOUNT,
+                    null);
                 this.rpc.sendSignedTransaction(transaction);
             }
         } catch (Exception e) {

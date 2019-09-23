@@ -114,7 +114,8 @@ public class AvmFailuresTest {
                 .encodeToBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO /* amount */);
+            BigInteger.ZERO, /* amount */
+            null);
         
         // send contract deployment Tx
         TransactionReceipt deployReceipt = sendRawTransactionSynchronously(transaction);
@@ -132,8 +133,8 @@ public class AvmFailuresTest {
                 new byte[] {argument},
                 ENERGY_LIMIT,
                 ENERGY_PRICE,
-                BigInteger.ZERO
-        );
+                BigInteger.ZERO,
+            null);
         
         return sendRawTransactionSynchronously(transaction);
     }

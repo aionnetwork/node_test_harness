@@ -120,7 +120,7 @@ public class AlternatingVmTest {
             getFvmDeployBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     private SignedTransaction makeAvmTransaction() throws InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -130,7 +130,7 @@ public class AlternatingVmTest {
             new CodeAndArguments(JarBuilder.buildJarForMainAndClasses(SimpleContract.class), new byte[0]).encodeToBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO);
+            BigInteger.ZERO, null);
     }
 
     /**

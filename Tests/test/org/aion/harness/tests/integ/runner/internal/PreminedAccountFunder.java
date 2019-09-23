@@ -66,7 +66,7 @@ public final class PreminedAccountFunder {
             null,
             2_000_000,
             10_000_000_000L,
-            amount);
+            amount, null);
 
         // Construct the 'transaction is processed' event we want to listen for.
         IEvent transactionSealed = prepackagedLogEvents.getTransactionSealedEvent(transaction);

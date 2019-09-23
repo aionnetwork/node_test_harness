@@ -425,10 +425,12 @@ public final class BulkRawTransactionBuilder {
             try {
                 if ((type == TransactionType.AVM) && (destination == null)) {
                     transaction = SignedTransaction
-                        .newAvmCreateTransaction(key, senderNonce, data, energyLimit, energyPrice, value);
+                        .newAvmCreateTransaction(key, senderNonce, data, energyLimit, energyPrice, value,
+                            null);
                 } else {
                     transaction = SignedTransaction
-                        .newGeneralTransaction(key, senderNonce, destination, data, energyLimit, energyPrice, value);
+                        .newGeneralTransaction(key, senderNonce, destination, data, energyLimit, energyPrice, value,
+                            null);
                 }
             } catch (Exception e) {
                 return BulkResult.unsuccessful("Failed to create transaction #" + i + " due to: " + e.getMessage());

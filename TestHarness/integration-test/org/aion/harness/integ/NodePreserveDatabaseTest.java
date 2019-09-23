@@ -149,7 +149,7 @@ public class NodePreserveDatabaseTest {
                 new byte[0],
                 2_000_000,
                 10_000_000_000L,
-                value);
+                value, null);
     }
 
     private void shutdownNodeIfRunning() throws IOException, InterruptedException {

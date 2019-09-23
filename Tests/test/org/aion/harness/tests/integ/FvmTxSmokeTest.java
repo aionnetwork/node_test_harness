@@ -99,7 +99,8 @@ public class FvmTxSmokeTest {
             DEPLOY_DATA,
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            BigInteger.ZERO /* amount */);
+            BigInteger.ZERO, /* amount */
+            null);
 
         // send contract deployment Tx
         TransactionReceipt deployReceipt = sendTransaction(transaction);
@@ -122,7 +123,8 @@ public class FvmTxSmokeTest {
         // set "data" field of the contract
         SignedTransaction tx1 =
             SignedTransaction.newGeneralTransaction(this.preminedAccount.getPrivateKey(), this.preminedAccount.getNonce(), contract,
-                SET_DATA_1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */);
+                SET_DATA_1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO, /* amount */
+                null);
         TransactionReceipt tx1Receipt = sendTransaction(tx1);
         assertThat(tx1Receipt, is(not(nullValue()))); // can get more rigourous with this
 
@@ -141,7 +143,8 @@ public class FvmTxSmokeTest {
         // set "data" field of the contract
         SignedTransaction tx2 =
             SignedTransaction.newGeneralTransaction(this.preminedAccount.getPrivateKey(), this.preminedAccount.getNonce(), contract,
-                SET_DATA_2, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */);
+                SET_DATA_2, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO, /* amount */
+                null);
         TransactionReceipt tx2Receipt = sendTransaction(tx2);
         assertThat(tx2Receipt, is(not(nullValue()))); // can get more rigourous with this
 

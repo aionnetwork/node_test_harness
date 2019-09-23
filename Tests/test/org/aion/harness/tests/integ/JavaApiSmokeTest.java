@@ -166,7 +166,7 @@ public class JavaApiSmokeTest {
             getFvmContractBytes(),
             ENERGY_LIMIT,
             ENERGY_PRICE,
-            amount);
+            amount, null);
     }
 
     /**

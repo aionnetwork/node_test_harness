@@ -20,7 +20,7 @@ public final class SignedTransaction {
     private byte[] hash;
 
     private SignedTransaction(PrivateKey sender, BigInteger nonce, Address destination, byte[] data,
-        long energyLimit, long energyPrice, BigInteger value, boolean isAvmCreate)
+        long energyLimit, long energyPrice, BigInteger value, boolean isAvmCreate, byte[] beaconHash)
         throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
 
         SignedTransactionBuilder transactionBuilder = new SignedTransactionBuilder()
@@ -30,7 +30,8 @@ public final class SignedTransaction {
                 .data(data)
                 .energyLimit(energyLimit)
                 .energyPrice(energyPrice)
-                .value(value);
+                .value(value)
+                .beaconHash(beaconHash);
 
         if (isAvmCreate) {
             transactionBuilder.useAvmTransactionType();
@@ -50,10 +51,15 @@ public final class SignedTransaction {
      * @param energyLimit The energy limit.
      * @param energyPrice The price per unit energy.
      * @param value The amount to be transferred.
+     * @param beaconHash beacon hash (null allowed)
      * @return a new signed transaction.
      */
-    public static SignedTransaction newGeneralTransaction(PrivateKey senderPrivateKey, BigInteger nonce, Address destination, byte[] data, long energyLimit, long energyPrice, BigInteger value) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-        return new SignedTransaction(senderPrivateKey, nonce, destination, data, energyLimit, energyPrice, value, false);
+    public static SignedTransaction newGeneralTransaction(PrivateKey senderPrivateKey,
+                                                          BigInteger nonce, Address destination,
+                                                          byte[] data, long energyLimit,
+                                                          long energyPrice, BigInteger value,
+                                                          byte[] beaconHash) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        return new SignedTransaction(senderPrivateKey, nonce, destination, data, energyLimit, energyPrice, value, false, beaconHash);
     }
 
     /**
@@ -66,10 +72,14 @@ public final class SignedTransaction {
      * @param energyLimit The energy limit.
      * @param energyPrice The price per unit energy.
      * @param value The amount to be transferred to the contract.
+     * @param beaconHash beacon hash (null allowed)
      * @return a new signed transaction.
      */
-    public static SignedTransaction newAvmCreateTransaction(PrivateKey senderPrivateKey, BigInteger nonce, byte[] data, long energyLimit, long energyPrice, BigInteger value) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-        return new SignedTransaction(senderPrivateKey, nonce, null, data, energyLimit, energyPrice, value, true);
+    public static SignedTransaction newAvmCreateTransaction(PrivateKey senderPrivateKey,
+                                                            BigInteger nonce, byte[] data,
+                                                            long energyLimit, long energyPrice,
+                                                            BigInteger value, byte[] beaconHash) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        return new SignedTransaction(senderPrivateKey, nonce, null, data, energyLimit, energyPrice, value, true, beaconHash);
     }
 
     /**
