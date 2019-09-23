@@ -5,6 +5,7 @@ import org.aion.harness.tests.integ.AvmFailuresTest;
 import org.aion.harness.tests.integ.AvmReceiptLogTest;
 import org.aion.harness.tests.integ.AvmTxSmokeTest;
 import org.aion.harness.tests.integ.BalanceTransferTest;
+import org.aion.harness.tests.integ.BeaconHashTest;
 import org.aion.harness.tests.integ.BulkBalanceTransferTest;
 import org.aion.harness.tests.integ.CrossCallTest;
 import org.aion.harness.tests.integ.FvmTxSmokeTest;
@@ -28,6 +29,7 @@ import org.junit.runners.Suite;
     , RemovedStorageTest.class
     , AvmReceiptLogTest.class
     , InternalTxTest.class
+    , BeaconHashTest.class
 })
 public class ConcurrentSuite {
     /**
