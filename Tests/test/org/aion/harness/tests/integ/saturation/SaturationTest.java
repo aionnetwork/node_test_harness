@@ -6,8 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
+import org.aion.harness.kernel.SignedTransaction;
+import org.aion.harness.main.RPC;
+import org.aion.harness.main.types.ReceiptHash;
+import org.aion.harness.result.RpcResult;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -67,6 +73,38 @@ public class SaturationTest {
         return Arrays.asList(IPs.split(", "));
     }
 
+    private void fundSenders(RPC rpc, List<Address> senders) throws Exception {
+        System.out.println("Funding the sender accounts ...");
+
+        BigInteger energyCost = BigInteger.valueOf(SaturationTest.ENERGY_LIMIT).multiply(BigInteger.valueOf(SaturationTest.ENERGY_PRICE));
+        BigInteger transactionCost = energyCost.add(SaturationTest.TRANSFER_AMOUNT);
+        BigInteger costOfAllTransactions = transactionCost.multiply(BigInteger.valueOf(SaturationTest.NUM_TRANSACTIONS));
+        if (SaturationTest.INITIAL_SENDER_BALANCE.compareTo(costOfAllTransactions) < 0) {
+            throw new IllegalStateException("Sender does not have enough balance to send all transactions!");
+        }
+
+        for (Address sender : senders) {
+            SignedTransaction transaction = SignedTransaction.newGeneralTransaction(SaturationTest.preminedAccount, SaturationTest.getAndIncrementNonce(), sender, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.INITIAL_SENDER_BALANCE);
+            RpcResult<ReceiptHash> sendResult = rpc.sendSignedTransaction(transaction);
+            if (!sendResult.isSuccess()) {
+                throw new IllegalStateException("Failed to send transaction over RPC due to: " + sendResult);
+            }
+        }
+
+        System.out.println("Waiting for the accounts to recieve their funds ...");
+
+        for (Address sender : senders) {
+            BigInteger currentSenderBalance = rpc.getBalance(sender).getResult();
+            while (!currentSenderBalance.equals(SaturationTest.INITIAL_SENDER_BALANCE)) {
+                Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+                currentSenderBalance = rpc.getBalance(sender).getResult();
+            }
+            System.out.println(sender + " was funded!");
+        }
+
+        System.out.println("Finished funding the sender accounts!");
+    }
+
     @Test
     public void saturationTest() throws Exception {
         preminedAccount = PrivateKey.fromBytes(Hex.decodeHex("4c3c8a7c0292bc55d97c50b4bdabfd47547757d9e5c194e89f66f25855baacd0"));
@@ -81,6 +119,9 @@ public class SaturationTest {
         List<PrivateKey> senderKeys = newRandomKeys(ipAddresses.size());
         Assert.assertEquals(ipAddresses.size(), senderKeys.size());
         System.out.println("All sender accounts initialized!");
+
+        // First, fund the sender account.
+        fundSenders(RPC.newRpc(ipAddresses.get(0), "8545"), keysToAddresses(senderKeys));
 
         // Start the node sender threads.
         System.out.println("Starting all sender threads ...");
@@ -101,6 +142,14 @@ public class SaturationTest {
             }
         }
         System.out.println("All threads have finished sending transactions.");
+    }
+
+    private static List<Address> keysToAddresses(List<PrivateKey> keys) {
+        List<Address> addresses = new ArrayList<>();
+        for (PrivateKey key : keys) {
+            addresses.add(key.getAddress());
+        }
+        return addresses;
     }
 
     private static List<NodeSender> createAllNodeSenders(List<PrivateKey> senderKeys) {

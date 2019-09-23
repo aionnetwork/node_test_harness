@@ -38,31 +38,6 @@ public final class NodeSender implements Runnable {
             // Wait for all the sender threads to be ready to send.
             this.barrier.await();
 
-            // First, fund the sender account.
-            System.out.println(this.name + " funding the sender account ...");
-
-            BigInteger energyCost = BigInteger.valueOf(SaturationTest.ENERGY_LIMIT).multiply(BigInteger.valueOf(SaturationTest.ENERGY_PRICE));
-            BigInteger transactionCost = energyCost.add(SaturationTest.TRANSFER_AMOUNT);
-            BigInteger costOfAllTransactions = transactionCost.multiply(BigInteger.valueOf(SaturationTest.NUM_TRANSACTIONS));
-            if (SaturationTest.INITIAL_SENDER_BALANCE.compareTo(costOfAllTransactions) < 0) {
-                throw new IllegalStateException("Sender does not have enough balance to send all transactions!");
-            }
-
-            SignedTransaction transaction = SignedTransaction.newGeneralTransaction(SaturationTest.preminedAccount, SaturationTest.getAndIncrementNonce(), this.senderAddress, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.INITIAL_SENDER_BALANCE);
-            RpcResult<ReceiptHash> sendResult = this.rpc.sendSignedTransaction(transaction);
-            if (!sendResult.isSuccess()) {
-                throw new IllegalStateException("Failed to send transaction over RPC due to: " + sendResult);
-            }
-
-            // Wait for the sender account to recieve its funds.
-            BigInteger currentSenderBalance = this.rpc.getBalance(this.senderAddress).getResult();
-            while (!currentSenderBalance.equals(SaturationTest.INITIAL_SENDER_BALANCE)) {
-                Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-                currentSenderBalance = this.rpc.getBalance(this.senderAddress).getResult();
-            }
-            System.out.println(this.name + " finished funding the sender account!");
-
-
             Address destination = PrivateKey.random().getAddress();
 
             // Send the transactions at the specified rate.
@@ -75,8 +50,8 @@ public final class NodeSender implements Runnable {
 
                 // Send until we hit the max.
                 while (count < SaturationTest.TRANSACTIONS_PER_SECOND) {
-                    transaction = SignedTransaction.newGeneralTransaction(this.senderKey, BigInteger.valueOf(nonce), destination, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.TRANSFER_AMOUNT);
-                    sendResult = this.rpc.sendSignedTransaction(transaction);
+                    SignedTransaction transaction = SignedTransaction.newGeneralTransaction(this.senderKey, BigInteger.valueOf(nonce), destination, new byte[0], SaturationTest.ENERGY_LIMIT, SaturationTest.ENERGY_PRICE, SaturationTest.TRANSFER_AMOUNT);
+                    RpcResult<ReceiptHash> sendResult = this.rpc.sendSignedTransaction(transaction);
                     if (!sendResult.isSuccess()) {
                         throw new IllegalStateException("Failed to send transaction over RPC due to: " + sendResult);
                     }
