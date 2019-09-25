@@ -181,7 +181,7 @@ public final class EventRequest {
 
             return LogEventResult.observedEvent(
                 this.requestedEvent.getAllObservedEvents(),
-                this.requestedEvent.getAllObservedEvents(),
+                this.requestedEvent.getAllObservedLogs(),
                 this.timeOfObservationInNanos,
                 TimeUnit.NANOSECONDS);
 
@@ -190,19 +190,19 @@ public final class EventRequest {
             return LogEventResult.rejectedEvent(
                 this.causeOfRejection,
                 this.requestedEvent.getAllObservedEvents(),
-                this.requestedEvent.getAllObservedEvents());
+                this.requestedEvent.getAllObservedLogs());
 
         } else if (this.currentState == RequestState.EXPIRED) {
 
             return LogEventResult.expiredEvent(
                 this.requestedEvent.getAllObservedEvents(),
-                this.requestedEvent.getAllObservedEvents());
+                this.requestedEvent.getAllObservedLogs());
 
         } else {
 
             return LogEventResult.unobservedEvent(
                 this.requestedEvent.getAllObservedEvents(),
-                this.requestedEvent.getAllObservedEvents());
+                this.requestedEvent.getAllObservedLogs());
 
         }
     }
