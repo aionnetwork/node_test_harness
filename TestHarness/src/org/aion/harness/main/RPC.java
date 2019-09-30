@@ -89,11 +89,14 @@ public final class RPC {
      *
      * @return the bytes returned by the <code>submitseed</code>, which should be the so-called "mining hash" field of a block template.
      */
-    public byte[] submitSeed(byte[] seed, byte[] publicKey) throws InterruptedException {
+    public byte[] submitSeed(byte[] seed, byte[] publicKey, Address coinbase) throws InterruptedException {
         String seedString = "\"0x" + Hex.encodeHexString(seed) + '\"';
         String publicKeyString = "\"0x" + Hex.encodeHexString(publicKey) + '\"';
-        System.out.println("I am sending: " + seedString + ", " + publicKeyString);
-        return sendCall(RpcMethod.SUBMIT_SEED, seedString + ", " + publicKeyString);
+        String coinbaseString = "\"0x" + Hex.encodeHexString(coinbase.getAddressBytes()) + '\"';
+        return sendCall(RpcMethod.SUBMIT_SEED, 
+                seedString + ", " + 
+                       publicKeyString + ", " +
+                        coinbaseString);
     }
 
     /**

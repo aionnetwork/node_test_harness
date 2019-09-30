@@ -124,9 +124,10 @@ public class Participant {
     }
     
     // Returns the seed of the newly created block
+    // Assumes signing address is also coinbase address
     public byte[] createAndSendStakingBlock() throws InterruptedException, InvalidKeySpecException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         byte[] nextSeed = getNextSeed();
-        byte[] blockHashToSign = rpc.submitSeed(nextSeed, privateKey.getPublicKeyBytes());
+        byte[] blockHashToSign = rpc.submitSeed(nextSeed, privateKey.getPublicKeyBytes(), privateKey.getAddress());
         byte[] signature = MessageSigner.signMessageFromKeyBytes(privateKey.getPrivateKeyBytes(), blockHashToSign);
         rpc.submitSignature(signature, blockHashToSign);
         return nextSeed;
