@@ -21,7 +21,7 @@ import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.tests.contracts.Assertions;
 import org.aion.harness.tests.contracts.avm.AvmFailureModes;
-import org.aion.harness.tests.integ.runner.ExcludeNodeType;
+import org.aion.harness.tests.integ.runner.RunWithNodes;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
  * Tests the behaviour of various AVM success/failure modes, checking that the consumed energy is consistent with expectations.
  */
 @RunWith(SequentialRunner.class)
-@ExcludeNodeType(NodeType.RUST_NODE) // exclude Rust for now due to bugs that prevent tests from passing
+@RunWithNodes(NodeType.JAVA_NODE)
 public class AvmFailuresTest {
     private static final long ENERGY_LIMIT = 2_000_000L;
     private static final long ENERGY_PRICE = 10_010_020_345L;

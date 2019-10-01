@@ -48,7 +48,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * Gradle example: <code>./gradlew Tests:test -PtestNodes=java,rust</code>
  * If running in IDE, add <code>-PtestNodes=java</code> to JUnit VM arguments.
  *
- * Classes can override this behaviour using {@link ExcludeNodeType}.
+ * Classes can override this behaviour using {@link RunWithNodes}.
  */
 public final class ConcurrentRunner extends Runner {
     // Maximum number of threads to be used to run the tests. Our max is high because our tests are IO-bound.
@@ -501,7 +501,7 @@ public final class ConcurrentRunner extends Runner {
             Class<? extends Annotation> annotationType = annotation.annotationType();
             if (!annotationType.equals(org.junit.Ignore.class)
                 && !annotationType.equals(org.junit.runner.RunWith.class)
-                && !annotationType.equals(ExcludeNodeType.class)) {
+                && !annotationType.equals(RunWithNodes.class)) {
                 throw new UnsupportedAnnotation("This custom runner does not support the annotation: " + annotation);
             }
         }

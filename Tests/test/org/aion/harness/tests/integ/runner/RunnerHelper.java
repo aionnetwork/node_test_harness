@@ -69,8 +69,8 @@ class RunnerHelper {
     Set<NodeType> determineExcludedNodeTypes(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
             Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (annotationType.equals(ExcludeNodeType.class)) {
-                return Set.of(((ExcludeNodeType) annotation).value());
+            if (!annotationType.equals(RunWithNodes.class)) {
+                return Set.of(((RunWithNodes) annotation).value());
             }
         }
         return Collections.emptySet();

@@ -6,8 +6,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.aion.harness.main.NodeFactory.NodeType;
 
+/**
+ * Specifies all of the nodes that the declaring test is eligible to be run against.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface ExcludeNodeType {
-    NodeType[] value() default {};
+public @interface RunWithNodes {
+
+    NodeType[] value();
 }
