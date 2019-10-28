@@ -8,6 +8,7 @@ import org.aion.harness.tests.integ.BalanceTransferTest;
 import org.aion.harness.tests.integ.BeaconHashTest;
 import org.aion.harness.tests.integ.BulkBalanceTransferTest;
 import org.aion.harness.tests.integ.CrossCallTest;
+import org.aion.harness.tests.integ.FvmDataBillingTest;
 import org.aion.harness.tests.integ.FvmTxSmokeTest;
 import org.aion.harness.tests.integ.InternalTxTest;
 import org.aion.harness.tests.integ.JavaApiSmokeTest;
@@ -25,6 +26,7 @@ import org.junit.runners.Suite;
     AvmTxSmokeTest.class,
     FvmTxSmokeTest.class,
     JavaApiSmokeTest.class
+    , FvmDataBillingTest.class
     , AvmFailuresTest.class
     , AlternatingVmTest.class
     , RemovedStorageTest.class
