@@ -42,6 +42,8 @@ test {
         include '**/integ/saturation/*'
     } else if (project.hasProperty("unsignedSaturation")) {
         include '**/integ/unsignedSaturation/*'
+    } else if (project.hasProperty("fvmBilling")) {
+        include '**/integ/fvmFork/*'
     } else {
     include '**/integ/concurrent/ConcurrentSuite.class'
     }
