@@ -268,7 +268,7 @@ public class JavaNode implements LocalNode {
     /**
      * Block until logs indicate that either RPC server started or an error happened
      */
-    protected Result waitForKernelReadyOrError(File outputLog) throws InterruptedException {
+    protected Result waitForKernelReadyOrError(File outputLog) throws InterruptedException, IOException {
         // We wait for the rpc event to know we are ok to return. There is a chance that we will miss
         // this event and start listening too late. That is why we timeout after 20 seconds, which
         // should be more than sufficient for the server to activate, and then we check if the node

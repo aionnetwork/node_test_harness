@@ -14,7 +14,6 @@ public final class Block {
     private final byte[] bloomFilter;
     private final byte[] receiptTrieRoot;
     private final byte[] stateRoot;
-    private final byte[] nonce;
     private final BigInteger number;
     private final BigInteger totalDifficulty;
 
@@ -31,7 +30,6 @@ public final class Block {
         this.bloomFilter = Arrays.copyOf(bloomFilter, bloomFilter.length);
         this.receiptTrieRoot = Arrays.copyOf(receiptTrieRoot, receiptTrieRoot.length);
         this.stateRoot = Arrays.copyOf(stateRoot, stateRoot.length);
-        this.nonce = Arrays.copyOf(nonce, nonce.length);
         this.number = number;
         this.totalDifficulty = totalDifficulty;
     }
@@ -120,15 +118,6 @@ public final class Block {
     }
 
     /**
-     * Returns the block's nonce, which is a hash of the generated proof-of-work for this block.
-     *
-     * @return the block's nonce.
-     */
-    public byte[] getBlockNonce() {
-        return Arrays.copyOf(this.nonce, this.nonce.length);
-    }
-
-    /**
      * Returns the number of this block.
      *
      * @return the block's number.
@@ -158,7 +147,6 @@ public final class Block {
             + ", parent hash = 0x" + Hex.encodeHexString(this.parentHash)
             + ", state root = 0x" + Hex.encodeHexString(this.stateRoot)
             + ", receipts root = 0x" + Hex.encodeHexString(this.receiptTrieRoot)
-            + ", nonce = 0x" + Hex.encodeHexString(this.nonce)
             + ", bloom filter = 0x" + Hex.encodeHexString(this.bloomFilter) + " }";
     }
 

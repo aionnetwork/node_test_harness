@@ -1,7 +1,9 @@
 package org.aion.harness.tests.integ.runner;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -21,6 +23,7 @@ import org.aion.harness.tests.integ.runner.exception.UnexpectedTestRunnerExcepti
 import org.aion.harness.tests.integ.runner.exception.UnsupportedAnnotation;
 import org.aion.harness.tests.integ.runner.internal.FailedClass;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccountFunder;
+import org.aion.harness.tests.integ.runner.internal.StakingBlockSigner;
 import org.aion.harness.tests.integ.runner.internal.TestAndResultQueueManager;
 import org.aion.harness.tests.integ.runner.internal.TestContext;
 import org.aion.harness.tests.integ.runner.internal.TestExecutor;
@@ -56,6 +59,7 @@ public final class ConcurrentRunner extends Runner {
     private static final int MAX_NUM_THREADS = 50;
 
     private final EquihashMiner miner = new EquihashMiner();
+    private Process stakingBlockSigner = null;
 
     private final RunnerHelper helper;
 
@@ -107,15 +111,19 @@ public final class ConcurrentRunner extends Runner {
         PrintStream originalStdout = helper.replaceStdoutWithThreadSpecificOutputStream();
         PrintStream originalStderr = helper.replaceStderrWithThreadSpecificErrorStream();
 
-        miner.startMining();
+        for (NodeType nt : node2ClassDescriptions.keySet()) {
 
-        for(NodeType nt : node2ClassDescriptions.keySet()) {
+            miner.startMining();
+            
             TestNodeManager testNodeManager = new TestNodeManager(nt);
 
             // Start up the local node before any tests are run.
             initializeAndStartNode(testNodeManager);
 
             try {
+                // StakingBlockSigner currently needs to be started after the node's rpc is up and running
+                stakingBlockSigner = StakingBlockSigner.startExternalStaker();
+                
                 // Run every @BeforeClass method in any of the test classes.
                 List<FailedClass> failedClasses = runAllBeforeClassMethodsAndReturnFailedClasses(nt);
 
@@ -142,6 +150,7 @@ public final class ConcurrentRunner extends Runner {
                 throw new UnexpectedTestRunnerException("Unexpected throwable!", e);
             } finally {
                 miner.stopMining();
+                stakingBlockSigner.destroy();
 
                 // Ensure that the node gets shut down properly.
                 stopNode(testNodeManager);

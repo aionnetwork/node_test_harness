@@ -108,9 +108,6 @@ public final class BlockBuilder {
         if (this.stateRoot == null) {
             throw new IllegalStateException("Cannot build block with no state trie set.");
         }
-        if (this.nonce == null) {
-            throw new IllegalStateException("Cannot build block with no nonce set.");
-        }
         if (this.number == null) {
             throw new IllegalStateException("Cannot build block with no block number set.");
         }

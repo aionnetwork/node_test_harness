@@ -56,6 +56,11 @@ public final class TestNodeManager {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
 
+            // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
+            if (nodeType == NodeType.JAVA_NODE) {
+                UnityBootstrapJava.bootstrap();
+            }
+
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();
 
