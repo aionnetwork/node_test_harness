@@ -1,5 +1,6 @@
 package org.aion.harness.main;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.math.BigInteger;
 import java.text.NumberFormat;
@@ -16,11 +17,13 @@ import org.aion.harness.main.tools.RpcMethod;
 import org.aion.harness.main.tools.JsonStringParser;
 import org.aion.harness.main.tools.RpcPayload;
 import org.aion.harness.main.types.Block;
+import org.aion.harness.main.types.MinedBlockSolution;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.SyncStatus;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.main.types.internal.BlockBuilder;
 import org.aion.harness.main.types.internal.TransactionReceiptBuilder;
+import org.aion.harness.main.types.BlockTemplate;
 import org.aion.harness.misc.Assumptions;
 import org.aion.harness.result.Result;
 import org.aion.harness.result.RpcResult;
@@ -607,6 +610,47 @@ public final class RPC {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Requests the kernel for the block template of the next block to be mined.
+     *
+     * Note that rpc.call must be called with verbose = false or this function will not receive
+     * any output.
+     *
+     * @return the result of the call.
+     */
+    public BlockTemplate getBlockTemplate() throws InterruptedException {
+        // Construct the payload to the rpc call (ie. the content of --data).
+        String payload = RpcPayload.generatePayload(RpcMethod.GET_BLOCK_TEMPLATE, "");
+
+        logMessage("-->" + payload);
+        InternalRpcResult internalResult = rpc.call(payload, false);
+        logMessage("<--" + internalResult.output);
+
+        if (internalResult.success) {
+            try {
+                JsonStringParser outputParser = new JsonStringParser(internalResult.output);
+                String result = outputParser.attributeToString("result");
+                JsonStringParser innerParser = new JsonStringParser(result);
+                BigInteger difficultyTarget = new BigInteger(Hex.decodeHex(innerParser.attributeToString("target")));
+                byte[] headerHash = Hex.decodeHex(innerParser.attributeToString("headerHash"));
+
+                return new BlockTemplate(difficultyTarget, headerHash);
+            } catch (Exception ignored) {}
+        }
+
+        return null;
+    }
+
+    public void submitSolution(MinedBlockSolution solution) throws InterruptedException {
+        // Construct the payload to the rpc call (ie. the content of --data).
+        String params = "\"0x" + Hex.encodeHexString(solution.getNonce()) + "\",\"0x" + Hex.encodeHexString(solution.getSolution()) + "\",\"0x" + Hex.encodeHexString(solution.getHeaderHash()) + "\"";
+        String payload = RpcPayload.generatePayload(RpcMethod.SUBMIT_BLOCK, params);
+
+        logMessage("-->" + payload);
+        InternalRpcResult internalResult = rpc.call(payload, false);
+        logMessage("<--" + internalResult.output);
     }
 
     /**
