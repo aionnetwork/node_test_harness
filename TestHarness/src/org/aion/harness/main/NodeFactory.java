@@ -9,7 +9,7 @@ import org.aion.harness.main.impl.KubernetesNode;
 import org.aion.harness.main.impl.KubernetesNodeType;
 
 /**
- * A factory for producing {@link Node} implementations.
+ * A factory for producing Node implementations.
  *
  * A NodeFactory is not thread-safe.
  */

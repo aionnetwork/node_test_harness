@@ -5,7 +5,14 @@ import org.aion.harness.result.Result;
 import java.io.File;
 import java.io.IOException;
 
-public interface RemoteNode extends Node {
+public interface RemoteNode {
+
+    /**
+     * Returns the unique identity of this node.
+     *
+     * @return the node's identity.
+     */
+    public int getID();
 
     /**
      * Given the log file, connect to the remote node.

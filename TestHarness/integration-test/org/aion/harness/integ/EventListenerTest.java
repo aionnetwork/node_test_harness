@@ -76,7 +76,7 @@ public class EventListenerTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         LogEventResult requestResult = listener.listenForEvent(new JavaPrepackagedLogEvents().getStartedMiningEvent(), 2, TimeUnit.MINUTES).get();
 
@@ -105,7 +105,7 @@ public class EventListenerTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         FutureResult<LogEventResult> futureResult = listener.listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
@@ -142,7 +142,7 @@ public class EventListenerTest {
         System.out.println(this.node.start());
         Assert.assertTrue(this.node.isAlive());
 
-        listener = NodeListener.listenTo(this.node);
+        listener = NodeListener.listenTo(this.node.getID());
 
         futureResult = listener.listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
@@ -185,7 +185,7 @@ public class EventListenerTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         FutureResult<LogEventResult> futureResult = listener.listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
@@ -219,7 +219,7 @@ public class EventListenerTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
         IEvent event = new Event("I will never occur");
 
         long duration = 10;
@@ -246,7 +246,7 @@ public class EventListenerTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
         IEvent event = new Event("I will never occur");
 
         long duration = 10;

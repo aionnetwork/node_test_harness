@@ -89,7 +89,7 @@ public class RemoteNodeTest {
         System.out.println("Connect result = " + result);
         assertTrue(result.isSuccess());
 
-        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode);
+        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode.getID());
         FutureResult<LogEventResult> future = nodeListener.listenForEvent(new Event("DEBUG"), 60, TimeUnit.SECONDS);
 
         LogEventResult waitResult = future.get();
@@ -122,7 +122,7 @@ public class RemoteNodeTest {
         this.remoteNode.disconnect();
 
         // try to listen when listener has stopped listening
-        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode);
+        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode.getID());
         FutureResult<LogEventResult> futureResult = nodeListener.listenForEvent(new Event("message"), 30, TimeUnit.SECONDS);
 
         // get the result of the listener.
@@ -156,7 +156,7 @@ public class RemoteNodeTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         // Start listening for the message we are going to set.
-        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode);
+        NodeListener nodeListener = NodeListener.listenTo(this.remoteNode.getID());
         FutureResult<LogEventResult> futureResult = nodeListener.listenForEvent(new Event(message), 1, TimeUnit.MINUTES);
 
         // put a message to the logs, this is the message we are looking for.
@@ -203,11 +203,11 @@ public class RemoteNodeTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         // Listen to the local node.
-        NodeListener localNodeListener = NodeListener.listenTo(this.localNode);
+        NodeListener localNodeListener = NodeListener.listenTo(this.localNode.getID());
         FutureResult<LogEventResult> localFuture = localNodeListener.listenForEvent(new Event("DEBUG"), 1, TimeUnit.MINUTES);
 
         // Listen to the remote node.
-        NodeListener remoteNodeListener = NodeListener.listenTo(this.remoteNode);
+        NodeListener remoteNodeListener = NodeListener.listenTo(this.remoteNode.getID());
         FutureResult<LogEventResult> remoteFuture = remoteNodeListener.listenForEvent(new Event(message), 1, TimeUnit.MINUTES);
 
         // put a message to the logs, this is the message we are looking for.

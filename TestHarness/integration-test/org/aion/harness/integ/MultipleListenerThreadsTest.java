@@ -63,7 +63,7 @@ public class MultipleListenerThreadsTest {
         List<Eavesdropper> eavesdroppers = new ArrayList<>();
         for (int i = 0; i < NUM_THREADS; i++) {
             eavesdroppers.add(
-                    Eavesdropper.createEavesdropperThatListensFor(Gossip.HEARTBEAT, i, this.node));
+                    Eavesdropper.createEavesdropperThatListensFor(Gossip.HEARTBEAT, i, this.node.getID()));
         }
 
         // Start running all of our eavesdropping threads.

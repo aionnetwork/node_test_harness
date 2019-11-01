@@ -192,7 +192,7 @@ public class SaturationTest {
         List<SignedTransaction> transactions = builderResult.getResults();
 
         // Start listening for the transactions to be processed.
-        NodeListener listener = NodeListener.listenTo(node);
+        NodeListener listener = NodeListener.listenTo(node.getID());
         List<ProcessedTransactionEventHolder> transactionProcessedEvents = constructTransactionProcessedEvents(transactions);
         List<IEvent> processedEvents = extractOnlyTransactionIsProcessedEvent(transactionProcessedEvents);
         List<FutureResult<LogEventResult>> futures = listener.listenForEvents(processedEvents, 5, TimeUnit.MINUTES);

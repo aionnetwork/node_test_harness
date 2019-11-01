@@ -38,7 +38,7 @@ public class ProxyJavaNode extends JavaNode {
             IEvent nearBestEv = new Event("PendingStateImpl.processBest: closeToNetworkBest[true]");
 
             try {
-                NodeListener listener = NodeListener.listenTo(this);
+                NodeListener listener = NodeListener.listenTo(this.getID());
 
                 FutureResult<LogEventResult> futureNearBestBlock = listener
                     .listenForEvent(nearBestEv, 5, TimeUnit.MINUTES);

@@ -273,7 +273,7 @@ public class RustNode implements LocalNode {
             }
 
             try {
-                NodeListener.listenTo(this)
+                NodeListener.listenTo(this.getID())
                     .listenForEvent(rpcEvent, 20, TimeUnit.SECONDS)
                     .get(40, TimeUnit.SECONDS);
             } catch (TimeoutException te) {

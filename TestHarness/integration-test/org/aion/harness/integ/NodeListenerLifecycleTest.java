@@ -48,7 +48,7 @@ public class NodeListenerLifecycleTest {
 
     @Test
     public void testNodeListenerBeforeStartingNode() throws InterruptedException {
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         // Time out should be irrelevant in this situation.
         LogEventResult result = listener.listenForEvent(
@@ -68,7 +68,7 @@ public class NodeListenerLifecycleTest {
         assertTrue(result.isSuccess());
         assertTrue(this.node.isAlive());
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
@@ -106,7 +106,7 @@ public class NodeListenerLifecycleTest {
 
         // We launch the listener on a separate thread so that we don't get blocked by it.
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Eavesdropper eavesdropper = Eavesdropper.createEavesdropperThatListensFor(Gossip.UNSPEAKABLE, 0, this.node);
+        Eavesdropper eavesdropper = Eavesdropper.createEavesdropperThatListensFor(Gossip.UNSPEAKABLE, 0, this.node.getID());
         executor.execute(eavesdropper);
 
         assertTrue(eavesdropper.isAlive());
@@ -130,11 +130,11 @@ public class NodeListenerLifecycleTest {
 
         // Wait until the request is in the pool.
         long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
-        while ((System.currentTimeMillis() < timeout) && (NodeListener.listenTo(this.node).numberOfEventsBeingListenedFor() == 0)) {
+        while ((System.currentTimeMillis() < timeout) && (NodeListener.listenTo(this.node.getID()).numberOfEventsBeingListenedFor() == 0)) {
             Thread.sleep(TimeUnit.SECONDS.toMillis(2));
         }
 
-        if (NodeListener.listenTo(this.node).numberOfEventsBeingListenedFor() == 0) {
+        if (NodeListener.listenTo(this.node.getID()).numberOfEventsBeingListenedFor() == 0) {
             fail("Timed out waiting for the eavesdropper to submit its request!");
         }
 

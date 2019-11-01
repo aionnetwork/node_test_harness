@@ -105,7 +105,7 @@ public final class TestNodeManager {
      */
     public NodeListener newNodeListener() {
         if (this.localNode != null) {
-            return NodeListener.listenTo(this.localNode);
+            return NodeListener.listenTo(this.localNode.getID());
         } else {
             throw new IllegalStateException("Attempted to get a new listener but no local node is currently running!");
         }

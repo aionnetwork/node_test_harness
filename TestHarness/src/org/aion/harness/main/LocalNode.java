@@ -4,7 +4,14 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.aion.harness.result.Result;
 
-public interface LocalNode extends Node {
+public interface LocalNode {
+
+    /**
+     * Returns the unique identity of this node.
+     *
+     * @return the node's identity.
+     */
+    public int getID();
 
     /**
      * Configures the node with the specified settings.

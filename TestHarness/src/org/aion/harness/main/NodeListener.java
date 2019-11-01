@@ -28,11 +28,8 @@ public final class NodeListener {
         this.logListener = logListener;
     }
 
-    public static NodeListener listenTo(Node node) {
-        if (node == null) {
-            throw new IllegalStateException("node cannot be null");
-        }
-        return new NodeListener(SingletonFactory.singleton().nodeWatcher().getReaderForNodeByID(node.getID()).getLogListener());
+    public static NodeListener listenTo(int nodeId) {
+        return new NodeListener(SingletonFactory.singleton().nodeWatcher().getReaderForNodeByID(nodeId).getLogListener());
     }
 
     /**

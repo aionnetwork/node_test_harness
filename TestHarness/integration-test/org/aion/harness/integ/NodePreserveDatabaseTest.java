@@ -173,7 +173,7 @@ public class NodePreserveDatabaseTest {
                         preminedPrivateKey, destination, transferValue, nonce.getResult());
 
         FutureResult<LogEventResult> futureResult =
-                NodeListener.listenTo(this.node)
+                NodeListener.listenTo(this.node.getID())
                         .listenForEvent(
                             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
                             1,

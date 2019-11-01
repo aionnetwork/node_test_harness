@@ -3,7 +3,6 @@ package org.aion.harness.integ.resources;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.aion.harness.main.Node;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.NodeListener;
@@ -35,8 +34,8 @@ public final class Eavesdropper implements Runnable {
         this.ID = ID;
     }
 
-    public static Eavesdropper createEavesdropperThatListensFor(Gossip gossip, int ID, Node node) {
-        return new Eavesdropper(gossip, NodeListener.listenTo(node), ID);
+    public static Eavesdropper createEavesdropperThatListensFor(Gossip gossip, int ID, int nodeId) {
+        return new Eavesdropper(gossip, NodeListener.listenTo(nodeId), ID);
     }
 
     @Override

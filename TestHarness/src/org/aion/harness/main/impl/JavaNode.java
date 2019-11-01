@@ -286,7 +286,7 @@ public class JavaNode implements LocalNode {
 
             log.log("Waiting for kernel to start RPC server");
             try {
-                NodeListener.listenTo(this)
+                NodeListener.listenTo(this.getID())
                     .listenForEvent(rpcEvent, 20, TimeUnit.SECONDS)
                     .get(20, TimeUnit.SECONDS);
             } catch (TimeoutException te) {

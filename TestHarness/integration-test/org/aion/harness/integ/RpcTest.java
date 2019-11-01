@@ -554,7 +554,7 @@ public class RpcTest {
             BigInteger.ONE,
             BigInteger.ZERO);
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         FutureResult<LogEventResult> futureResult = listener.listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
@@ -611,7 +611,7 @@ public class RpcTest {
             BigInteger.ONE,
             BigInteger.ZERO);
 
-        NodeListener listener = NodeListener.listenTo(this.node);
+        NodeListener listener = NodeListener.listenTo(this.node.getID());
 
         FutureResult<LogEventResult> futureResult = listener.listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
@@ -748,7 +748,7 @@ public class RpcTest {
             transferValue,
             BigInteger.ZERO);
 
-        FutureResult<LogEventResult> futureResult = NodeListener.listenTo(this.node).listenForEvent(
+        FutureResult<LogEventResult> futureResult = NodeListener.listenTo(this.node.getID()).listenForEvent(
             new JavaPrepackagedLogEvents().getTransactionProcessedEvent(transaction),
             1,
             TimeUnit.MINUTES);

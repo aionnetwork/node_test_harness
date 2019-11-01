@@ -78,7 +78,7 @@ public class KernelAddressTest {
 
     @Test
     public void testCorrectness() throws Exception {
-        NodeListener nodeListener = NodeListener.listenTo(this.node);
+        NodeListener nodeListener = NodeListener.listenTo(this.node.getID());
         PrivateKey senderPrivateKey = PrivateKey.random();
         System.out.println("private key = " + senderPrivateKey);
 
