@@ -2,11 +2,6 @@ package org.aion.harness.tests.integ.multikernel;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import org.aion.harness.main.LocalNode;
 import org.aion.harness.main.Network;
@@ -17,7 +12,6 @@ import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.NodeListener;
 import org.aion.harness.main.ProhibitConcurrentHarness;
 import org.aion.harness.result.Result;
-import org.aion.harness.tests.integ.multikernel.BeaconHashSidechainTest;
 import org.aion.harness.tests.integ.runner.exception.TestRunnerInitializationException;
 import org.aion.harness.tests.integ.runner.internal.TestNodeManager;
 import org.apache.commons.io.FileUtils;
@@ -59,26 +53,14 @@ public final class BeaconHashSidechainNodeManager {
      *
      * If anything goes wrong this method will throw an exception to halt the runner.
      */
-    public void startLocalNode(boolean mining, boolean clearDb) throws Exception {
+    public void startLocalNode(boolean clearDb) throws Exception {
         if (this.localNode == null) {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
 
-            Path path = Paths.get(expectedKernelLocation + "/custom/config/config.xml");
-            Charset charset = StandardCharsets.UTF_8;
-
             if(clearDb) {
                 clearDb();
             }
-
-            // hackily set the mining
-            String content = new String(Files.readAllBytes(path), charset);
-            if(mining) {
-                content = content.replaceAll("<mining>false</mining>", "<mining>true</mining>");
-            } else {
-                content = content.replaceAll("<mining>true</mining>", "<mining>false</mining>");
-            }
-            Files.write(path, content.getBytes(charset));
 
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();

@@ -50,7 +50,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(SequentialRunner.class)
-@ExcludeNodeType(NodeType.RUST_NODE) // exclude Rust for now due to bugs that prevent tests from passing
 public class BulkBalanceTransferTest {
     private static final BigInteger PREMINED_INITIAL_BALANCE = BigInteger.TEN.pow(22);
     private static final int NUMBER_OF_TRANSACTIONS = 25;

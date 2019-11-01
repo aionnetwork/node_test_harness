@@ -14,6 +14,7 @@ public class EquihashMiner {
 
     private RPC rpc = RPC.newRpc("127.0.0.1", "8545");
 
+    // Be careful, trying to log anything in a different thread will probably cause a crash.
     private final SimpleLog logger = new SimpleLog("EquihashMiner");
 
     private int cpuThreads = 1;

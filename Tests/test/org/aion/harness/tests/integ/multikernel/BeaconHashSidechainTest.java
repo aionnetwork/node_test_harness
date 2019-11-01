@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.aion.equihash.EquihashMiner;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
@@ -56,6 +57,8 @@ import org.junit.Test;
 public class BeaconHashSidechainTest {
     private static BeaconHashSidechainNodeManager manager1;
     private static BeaconHashSidechainNodeManager manager2;
+
+    private final EquihashMiner miner = new EquihashMiner();
 
     private static final RPC rpc1 = RPC.newRpc("127.0.0.1", "8101");
     private static final RPC rpc2 = RPC.newRpc("127.0.0.1", "8102");
@@ -111,7 +114,8 @@ public class BeaconHashSidechainTest {
         // chain reaches 8 blocks.  This sets up the chain to test the
         // sidechain sync logic.
 
-        manager2.startLocalNode(true, true);
+        miner.startMining();
+        manager2.startLocalNode(true);
         listener2 = manager2.newNodeListener();
         log.log("Started kernel #2");
 
@@ -155,13 +159,14 @@ public class BeaconHashSidechainTest {
         log.log("Shutting down kernel #2");
         manager2.shutdownLocalNode();
         log.log("Started kernel #1");
-        manager1.startLocalNode(true, true);
+        manager1.startLocalNode(true);
         listener1 = manager1.newNodeListener();
 
         awaitBlockSealedAndCapture(listener1, 3);
 
         log.log("Shutting down kernel #1");
         manager1.shutdownLocalNode();
+        miner.stopMining();
 
         // Now turn on both kernels with mining off.  kernel1 will sync blocks from kernel2 since
         // kernel2's total difficulty is larger than that of kernel1.  kernel1 will initially consider
@@ -177,8 +182,8 @@ public class BeaconHashSidechainTest {
         // impl note: you can only listen to the most-recently started kernel because
         // LogManager moves all files from log/ to log/archive/ when it starts up.  luckily,
         // we only need to listen to kernel1.
-        manager2.startLocalNode(false, false);
-        manager1.startLocalNode(false, false);
+        manager2.startLocalNode(false);
+        manager1.startLocalNode(false);
         listener1 = manager1.newNodeListener();
 
         // impl note: possible race condition -- this only works because we

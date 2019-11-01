@@ -2,8 +2,6 @@ package org.aion.harness.main.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.aion.harness.main.LocalNode;
@@ -13,15 +11,12 @@ import org.aion.harness.main.NodeListener;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.global.SingletonFactory;
-import org.aion.harness.misc.Assumptions;
 import org.aion.harness.result.Result;
-import org.aion.harness.sys.LeveldbLockAwaiter;
 import org.aion.harness.sys.RustLeveldbLockAwaiter;
 import org.aion.harness.util.LogManager;
 import org.aion.harness.util.LogReader;
 import org.aion.harness.util.SimpleLog;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 public class RustNode implements LocalNode {
     private final SimpleLog log;
@@ -73,7 +68,7 @@ public class RustNode implements LocalNode {
     }
 
     @Override
-    public Result initialize() throws IOException, InterruptedException {
+    public Result initialize() throws IOException {
         Result result = useExistingBuild();
 
         // If initialization was successful then set up the log files.
@@ -86,7 +81,7 @@ public class RustNode implements LocalNode {
 
     }
 
-    private Result useExistingBuild() throws IOException {
+    private Result useExistingBuild() {
         // lifted from NodeInitializer#useExistingBuild
         if (!this.configurations.getDirectoryOfBuiltKernel().exists()) {
             return Result.unsuccessfulDueTo(
@@ -108,7 +103,7 @@ public class RustNode implements LocalNode {
      * In RustNode, {@link #initializeVerbose()} is exactly the same as {@link #initialize()}.
      */
     @Override
-    public Result initializeVerbose() throws IOException, InterruptedException {
+    public Result initializeVerbose() throws IOException {
         // initializeVerbose only has an effect if using the build-from-source
         // NodeConfiguration.  RustNode does not support build-from-source, so
         // just initialize normally.
@@ -144,6 +139,8 @@ public class RustNode implements LocalNode {
                 throw new IllegalArgumentException("Unsupported network");
         }
 
+        log.log("start network: " + cfgFile);
+
         String ldLib = System.getProperty("java.home") + File.separator + "lib" + File.separator + "server"
             + ":"
             + configurations.getDirectoryOfBuiltKernel() + File.separator + "libs";
@@ -172,7 +169,7 @@ public class RustNode implements LocalNode {
     }
 
     @Override
-    public Result stop() throws IOException, InterruptedException {
+    public Result stop() throws InterruptedException {
         if(runningKernel == null) {
             return Result.unsuccessfulDueTo("Node is not currently alive!");
         }
@@ -182,12 +179,12 @@ public class RustNode implements LocalNode {
 
         boolean terminated = runningKernel.waitFor(1, TimeUnit.MINUTES);
         if(terminated) {
-            try {
-                resetState();
-            } catch (IOException ioe) {
-                log.log("Failed to reset state.  Next execution of this test may be affected; "
-                    + "this can be fixed by deleting the data directory of aionr");
-            }
+//            try {
+//                resetState();
+//            } catch (IOException ioe) {
+//                log.log("Failed to reset state.  Next execution of this test may be affected; "
+//                    + "this can be fixed by deleting the data directory of aionr");
+//            }
             return Result.successful();
         } else {
             // resetState won't succeed if not terminated, so don't bother -- at this
@@ -265,7 +262,7 @@ public class RustNode implements LocalNode {
             // This isn't technically the 'RPC enabled' message because Rust kernel doesn't emit
             // such a log message.  However it seems like it doesn't print this message until
             // the RPC is started (has worked reliably so far).
-            IEvent rpcEvent = new Event("= Sync Statics =");
+            IEvent rpcEvent = new Event("External blocks added");
 
             Result result = this.logReader.startReading(outputLog);
             if (!result.isSuccess()) {

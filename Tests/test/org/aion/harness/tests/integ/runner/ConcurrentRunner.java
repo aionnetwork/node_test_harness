@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.aion.equihash.EquihashMiner;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.event.JavaPrepackagedLogEvents;
 import org.aion.harness.main.event.RustPrepackagedLogEvents;
@@ -53,6 +54,8 @@ import org.junit.runners.Suite.SuiteClasses;
 public final class ConcurrentRunner extends Runner {
     // Maximum number of threads to be used to run the tests. Our max is high because our tests are IO-bound.
     private static final int MAX_NUM_THREADS = 50;
+
+    private final EquihashMiner miner = new EquihashMiner();
 
     private final RunnerHelper helper;
 
@@ -104,6 +107,8 @@ public final class ConcurrentRunner extends Runner {
         PrintStream originalStdout = helper.replaceStdoutWithThreadSpecificOutputStream();
         PrintStream originalStderr = helper.replaceStderrWithThreadSpecificErrorStream();
 
+        miner.startMining();
+
         for(NodeType nt : node2ClassDescriptions.keySet()) {
             TestNodeManager testNodeManager = new TestNodeManager(nt);
 
@@ -136,6 +141,8 @@ public final class ConcurrentRunner extends Runner {
                 e.printStackTrace();
                 throw new UnexpectedTestRunnerException("Unexpected throwable!", e);
             } finally {
+                miner.stopMining();
+
                 // Ensure that the node gets shut down properly.
                 stopNode(testNodeManager);
 

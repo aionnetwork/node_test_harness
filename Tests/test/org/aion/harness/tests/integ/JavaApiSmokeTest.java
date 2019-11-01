@@ -44,7 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(SequentialRunner.class)
-@ExcludeNodeType(NodeType.RUST_NODE)
+@ExcludeNodeType(NodeType.RUST_NODE) // Rust nodes do not implement the Java API
 public class JavaApiSmokeTest {
     private static final long ENERGY_LIMIT = 1_234_567L;
     private static final long ENERGY_PRICE = 10_010_020_345L;

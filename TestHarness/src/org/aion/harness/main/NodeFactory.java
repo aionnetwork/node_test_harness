@@ -2,7 +2,7 @@ package org.aion.harness.main;
 
 import java.util.NoSuchElementException;
 import org.aion.harness.main.impl.ProxyJavaNode;
-import org.aion.harness.main.impl.RustNodeWithMiner;
+import org.aion.harness.main.impl.RustNode;
 import org.aion.harness.main.impl.JavaNode;
 import org.aion.harness.main.impl.GenericRemoteNode;
 import org.aion.harness.main.impl.KubernetesNode;
@@ -24,7 +24,7 @@ public final class NodeFactory {
 
         switch (node) {
             case JAVA_NODE: return new JavaNode();
-            case RUST_NODE: return new RustNodeWithMiner();
+            case RUST_NODE: return new RustNode();
             case PROXY_JAVA_NODE: return new ProxyJavaNode();
             default: throw new NoSuchElementException("The provided node type is not yet supported: " + node);
         }
