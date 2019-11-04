@@ -36,7 +36,7 @@ public final class TestNodeManager {
             this.expectedKernelLocation = WORKING_DIR + "/aionr";
             this.handedwrittenConfigs = WORKING_DIR + "/test_resources/rust_custom";
         } else if(nodeType == NodeType.JAVA_NODE) {
-            this.expectedKernelLocation = WORKING_DIR + "/aion";
+            this.expectedKernelLocation = WORKING_DIR + "/oan";
             this.handedwrittenConfigs = WORKING_DIR + "/test_resources/custom";
         } else if(nodeType == NodeType.PROXY_JAVA_NODE) {
             this.expectedKernelLocation = WORKING_DIR + "/aionproxy";

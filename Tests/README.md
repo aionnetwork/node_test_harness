@@ -84,7 +84,7 @@ Supported node types:
 
 Each node type expects the kernel-under-test to be placed in a directory within the test harness.  Note that the test harness will overwrite config files in these directories.
 
-- for java, extract the release to `node_test_harness/Tests/aion` (so that `aion.sh` is present in that directory)
+- for java, extract the release to `node_test_harness/Tests/oan` (so that `aion.sh` is present in that directory)
 - for rust, extract the release to `node_test_harness/Tests/aionr` (so that `aion` is present in that directory)
 - for proxy, extract a release of Java kernel to `node_test_harness/Tests/aionproxy` (so that `aion.sh` is present in that directory)
 

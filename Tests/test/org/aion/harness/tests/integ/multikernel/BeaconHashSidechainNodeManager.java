@@ -39,7 +39,7 @@ public final class BeaconHashSidechainNodeManager {
     public BeaconHashSidechainNodeManager(NodeType nodeType) {
         this.nodeType = nodeType;
         if(nodeType == NodeType.JAVA_NODE) {
-            this.expectedKernelLocation = WORKING_DIR + "/aion";
+            this.expectedKernelLocation = WORKING_DIR + "/oan";
             this.handedwrittenConfigs = WORKING_DIR + "/test_resources/custom";
         } else {
             throw new UnsupportedOperationException("Unsupported kernel type.  This manager only works for JAVA_NODE.");

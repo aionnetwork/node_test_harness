@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 public class TestHelper {
     private static final String WORKING_DIR = System.getProperty("user.dir");
-    public static final String EXPECTED_BUILD_LOCATION = WORKING_DIR + File.separator + "aion";
+    public static final String EXPECTED_BUILD_LOCATION = WORKING_DIR + File.separator + "oan";
     public static final Network DEFAULT_NETWORK = Network.CUSTOM;
 
     public static File getDefaultDatabaseLocation() {

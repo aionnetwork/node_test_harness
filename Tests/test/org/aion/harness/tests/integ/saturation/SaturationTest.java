@@ -42,7 +42,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SaturationTest {
-    private static String kernelDirectoryPath = System.getProperty("user.dir") + "/aion";
+    private static String kernelDirectoryPath = System.getProperty("user.dir") + "/oan";
     private static File kernelDirectory = new File(kernelDirectoryPath);
     private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom");
     private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");

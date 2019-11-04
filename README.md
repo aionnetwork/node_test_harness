@@ -47,7 +47,7 @@ You can find the build in the newly created `dist` directory.
 ### <a name="configure-local-node">Configuring a local Java Kernel node</a>
 
 #### <a name="use-prebuilt">Using a pre-built kernel</a>
-You have a pre-built kernel. Not a tar file, but its extracted contents. This should be a directory named `aion` (most likely) that contains the `aion.sh` script. Now instead of building from source, you want the node to launch directly from this build.
+You have a pre-built kernel. Not a tar file, but its extracted contents. This should be a directory named `oan` (most likely) that contains the `aion.sh` script. Now instead of building from source, you want the node to launch directly from this build.
 ```java
 DatabaseOption databaseOption = DatabaseOption.DO_NOT_PRESERVE_DATABASE;
 NodeConfigurations configurations = NodeConfigurations.alwaysUseBuiltKernel(network, "/path/to/build", databaseOption);
