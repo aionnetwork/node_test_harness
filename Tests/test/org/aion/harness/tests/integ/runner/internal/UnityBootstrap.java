@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class UnityBootstrapJava {
+public class UnityBootstrap {
     private static final String BOOTSTRAP_PATH = System.getProperty("user.dir") + "/../tooling/customBootstrap";
 
     public static void bootstrap() throws IOException, InterruptedException {

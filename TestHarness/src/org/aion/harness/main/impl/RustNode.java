@@ -11,10 +11,12 @@ import org.aion.harness.main.NodeListener;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.global.SingletonFactory;
+import org.aion.harness.misc.Assumptions;
 import org.aion.harness.result.Result;
 import org.aion.harness.sys.RustLeveldbLockAwaiter;
 import org.aion.harness.util.LogManager;
 import org.aion.harness.util.LogReader;
+import org.aion.harness.util.NodeFileManager;
 import org.aion.harness.util.SimpleLog;
 import org.apache.commons.io.FileUtils;
 
@@ -55,8 +57,12 @@ public class RustNode implements LocalNode {
         if(nc.alwaysBuildFromSource()) {
             throw new UnsupportedOperationException("RustNode only supports prebuilt kernel");
         }
-        if(! nc.preserveDatabase()) {
-            throw new UnsupportedOperationException("RustNode only supports preserving database");
+        if (!nc.preserveDatabase()) {
+            try {
+                FileUtils.deleteDirectory(new File(nc.getDirectoryOfBuiltKernel().getPath() + "/" + DATA_DIR));
+            } catch (IOException e) {
+                throw new RuntimeException("Couldn't clear Rust Database");
+            }
         }
 
         this.configurations = nc;
@@ -169,29 +175,37 @@ public class RustNode implements LocalNode {
     }
 
     @Override
-    public Result stop() throws InterruptedException {
-        if(runningKernel == null) {
-            return Result.unsuccessfulDueTo("Node is not currently alive!");
-        }
+    public Result stop() throws IOException, InterruptedException {
 
-        log.log("Destroying the process");
-        runningKernel.destroy();
+        Result result;
 
-        boolean terminated = runningKernel.waitFor(1, TimeUnit.MINUTES);
-        if(terminated) {
-//            try {
-//                resetState();
-//            } catch (IOException ioe) {
-//                log.log("Failed to reset state.  Next execution of this test may be affected; "
-//                    + "this can be fixed by deleting the data directory of aionr");
-//            }
-            return Result.successful();
+        if (isAlive()) {
+            log.log(Assumptions.LOGGER_BANNER + "Stopping Rust kernel node...");
+
+            this.runningKernel.destroy();
+            boolean shutdown = this.runningKernel.waitFor(1, TimeUnit.MINUTES);
+            this.runningKernel = null;
+            this.logReader.stopReading();
+
+            result = (shutdown) ? Result.successful() : Result.unsuccessfulDueTo("Timed out waiting for node to shut down!");
+
+            log.log(Assumptions.LOGGER_BANNER + "Rust kernel node stopped.");
+
         } else {
-            // resetState won't succeed if not terminated, so don't bother -- at this
-            // point need manual intervention from the user anyway.
-            return Result.unsuccessfulDueTo(
-                "Process still running one minute after issuing termination.");
+            result = Result.unsuccessfulDueTo("Node is not currently alive!");
         }
+
+        if (this.isInitialized) {
+            // Finds the kernel and kills it (above we are killing the aion.sh script,
+            // which is not guaranteed to kill the kernel). We find these processes because we know the
+            // directory of the executable, so we can hunt it down precisely.
+            String executableDir = NodeFileManager.getExecutableDirectoryOf(this.configurations.getActualBuildLocation());
+            ProcessHandle.allProcesses()
+                .filter(process -> process.info().command().toString().contains(executableDir))
+                .forEach(kernel -> kernel.destroy());
+        }
+
+        return result;
     }
 
     @Override

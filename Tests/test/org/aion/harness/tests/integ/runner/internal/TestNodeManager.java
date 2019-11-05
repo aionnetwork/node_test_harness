@@ -77,12 +77,11 @@ public final class TestNodeManager {
             }
 
             // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
-            if (nodeType == NodeType.JAVA_NODE) {
-                UnityBootstrapJava.bootstrap();
-            }
+            UnityBootstrap.bootstrap();
 
             this.localNode = node;
-        } else {
+        }
+        else {
             throw new IllegalStateException("Attempted to start running a local node but one is already running!");
         }
     }
@@ -132,6 +131,7 @@ public final class TestNodeManager {
         if(nodeType == NodeType.RUST_NODE) {
             overwriteIfTargetDirExists(new File(handedwrittenConfigs),
                 new File(expectedKernelLocation + "/custom"));
+            FileUtils.copyFile(new File (handedwrittenConfigs + "/env"), new File(expectedKernelLocation + "/env"));
         } else if(nodeType == NodeType.JAVA_NODE
             || nodeType == NodeType.PROXY_JAVA_NODE ) {
             FileUtils.copyDirectory(new File(handedwrittenConfigs),
