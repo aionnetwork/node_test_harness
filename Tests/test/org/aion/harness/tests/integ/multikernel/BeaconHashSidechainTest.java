@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,8 @@ import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
+import org.aion.harness.tests.integ.runner.internal.StakingBlockSigner;
+import org.aion.harness.tests.integ.runner.internal.UnityBootstrap;
 import org.aion.harness.util.SimpleLog;
 import org.aion.util.bytes.ByteUtil;
 import org.apache.commons.codec.binary.Hex;
@@ -57,11 +60,26 @@ import org.junit.Test;
 public class BeaconHashSidechainTest {
     private static BeaconHashSidechainNodeManager manager1;
     private static BeaconHashSidechainNodeManager manager2;
+    private static String port1 = "8101";
+    private static String port2 = "8102";
 
-    private final EquihashMiner miner = EquihashMiner.defaultMiner();
+    private static final EquihashMiner miner1 = new EquihashMiner("127.0.0.1", port1);
+    private static final EquihashMiner miner2 = new EquihashMiner("127.0.0.1", port2);
+    private static final StakingBlockSigner signer1 =
+        new StakingBlockSigner(
+            StakingBlockSigner.defaultPrivateKey,
+            StakingBlockSigner.defaultCoinbaseAddress,
+            StakingBlockSigner.defaultIp,
+            port1);
+    private static final StakingBlockSigner signer2 =
+        new StakingBlockSigner(
+            StakingBlockSigner.defaultPrivateKey,
+            StakingBlockSigner.defaultCoinbaseAddress,
+            StakingBlockSigner.defaultIp,
+            port2);
 
-    private static final RPC rpc1 = RPC.newRpc("127.0.0.1", "8101");
-    private static final RPC rpc2 = RPC.newRpc("127.0.0.1", "8102");
+    private static final RPC rpc1 = RPC.newRpc("127.0.0.1", port1);
+    private static final RPC rpc2 = RPC.newRpc("127.0.0.1", port2);
 
     private final String PREMINED_KEY = "4c3c8a7c0292bc55d97c50b4bdabfd47547757d9e5c194e89f66f25855baacd0";
     private final String PREMINED_ADDRESS = "0xa027e3441b6283222e3ce56d4c08b95f9cc2146dfe43ca697833ebdf413cd24a";
@@ -70,12 +88,12 @@ public class BeaconHashSidechainTest {
 
     public BeaconHashSidechainTest() {
         manager1 = new BeaconHashSidechainNodeManager(NodeType.JAVA_NODE,
-            System.getProperty("user.dir") + "/aion",
+            System.getProperty("user.dir") + "/oan",
             System.getProperty("user.dir") + "/test_resources/aioncustom1"
         );
 
         manager2 = new BeaconHashSidechainNodeManager(NodeType.JAVA_NODE,
-            System.getProperty("user.dir") + "/aion2",
+            System.getProperty("user.dir") + "/oan2",
             System.getProperty("user.dir") + "/test_resources/aioncustom2"
         );
     }
@@ -102,6 +120,10 @@ public class BeaconHashSidechainTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        miner1.stopMining();
+        miner2.stopMining();
+        signer1.stop();
+        signer2.stop();
     }
 
     @Test
@@ -109,20 +131,27 @@ public class BeaconHashSidechainTest {
         NodeListener listener1;
         NodeListener listener2;
 
-        // Start up kernel2, create a transaction in block num 2
-        // that uses block num 1 as beacon hash, then let it mine until its
+        // Start up kernel2, create a transaction in block num 7
+        // that uses block num 6 as beacon hash, then let it mine until its
         // chain reaches 8 blocks.  This sets up the chain to test the
         // sidechain sync logic.
 
-        miner.startMining();
+        /* Start up both kernels so they bootstrap to unity */
+        manager1.startLocalNode(true);
         manager2.startLocalNode(true);
+        miner2.startMining();
+        UnityBootstrap.bootstrap(port2);
+
+        manager1.shutdownLocalNode();
+        log.log("Stopped kernel #1");
+
         listener2 = manager2.newNodeListener();
-        log.log("Started kernel #2");
 
-        Map<Long, String> minedBlocks = awaitBlockSealedAndCapture(listener2, 1);
+        signer2.start();
+        Map<Long, String> sealedBlocks = awaitBlockSealedAndCapture(listener2, 5);
 
-        Block firstBlock = getRpcResultOrThrow(rpc2.getBlockByNumber(BigInteger.ONE),
-            "Can't get block 1 from kernel2");
+        Block firstBlock = getRpcResultOrThrow(rpc2.getBlockByNumber(BigInteger.valueOf(5)),
+            "Can't get block 5 from kernel2");
 
         Address addr = new Address(ByteUtil.hexStringToBytes(PREMINED_ADDRESS));
         PrivateKey preminedAccount = PrivateKey.fromBytes(Hex.decodeHex(PREMINED_KEY));
@@ -136,9 +165,9 @@ public class BeaconHashSidechainTest {
             BigInteger.ONE,
             firstBlock.hash);
         ReceiptHash th = getRpcResultOrThrow(rpc2.sendSignedTransaction(transaction),
-            "Coulnd't get hash of transaction after sending transaction to kernel2");
+            "Couldn't get hash of transaction after sending transaction to kernel2");
 
-        minedBlocks.putAll(awaitBlockSealedAndCapture(listener2, 8));
+        sealedBlocks.putAll(awaitBlockSealedAndCapture(listener2, 8));
 
         TransactionReceipt tr = getRpcResultOrThrow(rpc2.getTransactionReceipt(th),
             "Couldn't get transaction receipt after sending transaction to kernel2");
@@ -151,31 +180,38 @@ public class BeaconHashSidechainTest {
             "Transaction sent to node2 with (txHash, txBlockNum, blockHash) = (%s, %d, %s)",
             txHash, txBn, txBlockHash));
 
+        sealedBlocks.putAll(awaitBlockSealedAndCapture(listener2, 10));
+
         // Turn off kernel2 and start kernel1 (so they don't peer and sync).  Let kernel1
         // mine 3 blocks.  This sets up the condition such that when kernel1 is peered with
         // kernel2, kernel1 syncs the first few blocks of kernel2 as a side-chain (because
         // kernel1 has 3 blocks, the first few blocks from kernel2 form a lower total difficulty)
 
         log.log("Shutting down kernel #2");
+        signer2.stop();
+        miner2.stopMining();
         manager2.shutdownLocalNode();
         log.log("Started kernel #1");
-        manager1.startLocalNode(true);
+        manager1.startLocalNode(false);
+        miner1.startMining();
+        signer1.start();
         listener1 = manager1.newNodeListener();
 
-        awaitBlockSealedAndCapture(listener1, 3);
+        awaitBlockSealedAndCapture(listener1, 8);
+        signer2.stop();
+        miner1.stopMining();
 
         log.log("Shutting down kernel #1");
         manager1.shutdownLocalNode();
-        miner.stopMining();
 
         // Now turn on both kernels with mining off.  kernel1 will sync blocks from kernel2 since
         // kernel2's total difficulty is larger than that of kernel1.  kernel1 will initially consider
         // those incoming blocks to be a side chain, until it has retrieved enough for that
         // side chain to exceed the total difficulty of its main chain.  Since the transaction
-        // using beacon hash is in block num 2, evaluating the validity of that tx's beacon hash
+        // using beacon hash is in block num 6, evaluating the validity of that tx's beacon hash
         // will happen when that tx is in a side chain block (the incoming block won't be
         // considered main chain because at that time of the sync, the total difficulty hasn't
-        // yet reached that of kernel #1's main chain, which has 3 blocks)
+        // yet reached that of kernel #1's main chain, which has 6 blocks)
 
         log.log("Starting kernel #1 and #2 with mining turned off");
 
@@ -191,7 +227,7 @@ public class BeaconHashSidechainTest {
         // with one another.  if this happened really fast, the import status
         // messages could appear before we start listening.  luckily, this doesn't
         // seem to ever happen
-        List<BlockImportMessage> bims = awaitAndCaptureImportStatus(listener1, minedBlocks);
+        List<BlockImportMessage> bims = awaitAndCaptureImportStatus(listener1, sealedBlocks);
 
         // check the block with the transaction
         List<BlockImportMessage> txBim = bims.stream()
@@ -207,7 +243,7 @@ public class BeaconHashSidechainTest {
 
         // check the last block that we know kernel #2 mined was imported successfully
         List<BlockImportMessage> lastBim = bims.stream()
-            .filter(bim -> bim.number == 8)
+            .filter(bim -> bim.number == 9)
             .collect(Collectors.toList());
         assertThat("unexpected number of block import messages for block number " + txBn,
             txBim.size(), is(1));
@@ -244,12 +280,10 @@ public class BeaconHashSidechainTest {
      * @throws Exception
      *
      */
-    private List<BlockImportMessage>
-    awaitAndCaptureImportStatus(NodeListener listener, Map<Long, String> minedBlocks)
-    throws Exception {
+    private List<BlockImportMessage> awaitAndCaptureImportStatus(NodeListener listener, Map<Long, String> minedBlocks) throws Exception {
         List<FutureResult<LogEventResult>> expectedFutures = new LinkedList<>();
         for(Long bn : minedBlocks.keySet()) {
-            IEvent blockImportedEv = new Event("<import-status: node = 222222, hash = " + minedBlocks.get(bn) + ",");
+            IEvent blockImportedEv = new Event(", number = " + bn + ", txs = ");
             FutureResult<LogEventResult> resultFuture =
                 listener.listenForEvent(blockImportedEv, 3, TimeUnit.MINUTES);
             expectedFutures.add(resultFuture);
@@ -273,8 +307,7 @@ public class BeaconHashSidechainTest {
         return capturedMsgs;
     }
 
-    private static final Pattern BLOCK_SEALED_NUM_CAPTURE = Pattern.compile(
-        "block sealed <num=(\\d+), hash=(\\w+)");
+    private static final Pattern BLOCK_SEALED_NUM_CAPTURE = Pattern.compile("processBest: #(\\d+) \\((\\w+)");
 
     /**
      * Blocking-wait on "block sealed" kernel log messages until given block number
@@ -287,18 +320,16 @@ public class BeaconHashSidechainTest {
      *         observed during the wait
      * @throws Exception
      */
-    private Map<Long, String> awaitBlockSealedAndCapture(NodeListener listener,
-                                                         long number)
-    throws Exception {
+    private Map<Long, String> awaitBlockSealedAndCapture(NodeListener listener, long number) throws Exception {
         log.log("Waiting for 'block sealed' messages to reach block #" + number);
         Map<Long, String> minedBlocks = new HashMap<>();
         long mostRecentBlockNumberSeen = -1;
         while(mostRecentBlockNumberSeen < number) {
-            IEvent blockSealedEv = new Event("block sealed <num=");
+            IEvent blockSealedEvent = new Event("PendingStateImpl.processBest: #");
             FutureResult<LogEventResult> resultFuture =
-                listener.listenForEvent(blockSealedEv, 1, TimeUnit.MINUTES);
+                listener.listenForEvent(blockSealedEvent, 2, TimeUnit.MINUTES);
 
-            LogEventResult res = resultFuture.get(2, TimeUnit.MINUTES);
+            LogEventResult res = resultFuture.get(5, TimeUnit.MINUTES);
             if(! res.eventWasObserved()) {
                 throw new RuntimeException("Didn't observe block sealed string");
             }

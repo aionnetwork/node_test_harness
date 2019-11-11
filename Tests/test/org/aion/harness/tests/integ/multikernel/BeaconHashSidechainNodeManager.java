@@ -58,16 +58,12 @@ public final class BeaconHashSidechainNodeManager {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
 
-            if(clearDb) {
-                clearDb();
-            }
-
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();
 
             // Initialize the node.
             NodeConfigurations configurations = NodeConfigurations.alwaysUseBuiltKernel(
-                Network.CUSTOM, expectedKernelLocation, DatabaseOption.PRESERVE_DATABASE);
+                Network.CUSTOM, expectedKernelLocation, clearDb ? DatabaseOption.DO_NOT_PRESERVE_DATABASE : DatabaseOption.PRESERVE_DATABASE);
             LocalNode node = NodeFactory.getNewLocalNodeInstance(nodeType);
             node.configure(configurations);
 
@@ -146,11 +142,6 @@ public final class BeaconHashSidechainNodeManager {
         if (target.exists()) {
             FileUtils.copyDirectory(source, target);
         }
-    }
-
-    public void clearDb() throws IOException {
-        File db = new File(expectedKernelLocation + "/custom/database");
-        FileUtils.deleteDirectory(db);
     }
 
     public boolean isKernelRunning() {
