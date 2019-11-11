@@ -9,6 +9,7 @@ public class StakingBlockSigner {
     private final String EXTERNAL_STAKER_PATH = System.getProperty("user.dir") + "/../tooling/externalStaker";
     private final String coinbaseAddress;
     private final String signingAddressPrivateKey;
+    private Process process;
 
     public StakingBlockSigner(String signingAddressPrivateKey, String coinbaseAddress) {
         this.signingAddressPrivateKey = signingAddressPrivateKey;
@@ -19,13 +20,24 @@ public class StakingBlockSigner {
         return new StakingBlockSigner(defaultPrivateKey, defaultCoinbaseAddress);
     }
 
-    public Process start() {
+    public void start() {
+        if (process != null) { return; }
+
         try {
-            ProcessBuilder builder = new ProcessBuilder("./launchStaker.sh", signingAddressPrivateKey, coinbaseAddress).directory(new File(EXTERNAL_STAKER_PATH));
-            return builder.start();
+            ProcessBuilder builder = new ProcessBuilder("java", "-cp", "block_signer.jar:lib/*", "org.aion.staker.BlockSigner", signingAddressPrivateKey, coinbaseAddress)
+                .directory(new File(EXTERNAL_STAKER_PATH))
+                .redirectOutput(new File("/dev/null"));
+            process = builder.start();
         }
         catch (IOException e) {
             throw new RuntimeException("Could not start Staking Block Signer");
+        }
+    }
+
+    public void stop() {
+        if (process != null) {
+            process.destroy();
+            process = null;
         }
     }
 }
