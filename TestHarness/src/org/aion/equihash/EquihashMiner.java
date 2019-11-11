@@ -12,7 +12,7 @@ import org.aion.harness.util.SimpleLog;
 
 public class EquihashMiner {
 
-    private RPC rpc = RPC.newRpc("127.0.0.1", "8545");
+    private final RPC rpc;
 
     // Be careful, trying to log anything in a different thread will probably cause a crash.
     private final SimpleLog logger = new SimpleLog("EquihashMiner");
@@ -37,6 +37,14 @@ public class EquihashMiner {
 
     /** Miner threads */
     private final List<Thread> threads = new ArrayList<>();
+
+    public EquihashMiner(String ip, String port) {
+        rpc = RPC.newRpc(ip, port);
+    }
+
+    public static EquihashMiner defaultMiner() {
+        return new EquihashMiner("127.0.0.1", "8545");
+    }
 
     public void startMining() {
         if (isMining) { return; }
@@ -110,7 +118,9 @@ public class EquihashMiner {
                     try {
                         rpc.submitSolution(solution);
                     }
-                    catch (Exception ignored) {}
+                    catch (InterruptedException e) {
+                        break;
+                    }
                 }
             }
         }
