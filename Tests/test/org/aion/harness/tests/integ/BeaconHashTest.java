@@ -94,7 +94,7 @@ public class BeaconHashTest {
         log.log(String.format(
             "Using block #%d (hash = %s) as the good beacon block.",
             beaconBn,
-            ByteUtil.toHexString(beacon.getBlockHash())
+            ByteUtil.toHexString(beacon.hash)
         ));
 
         byte[] badBeacon = ByteUtil.hexStringToBytes("0xcafecafecafecafecafecafecafecafecafecafecafecafecafecafecafecafe");
@@ -131,7 +131,7 @@ public class BeaconHashTest {
             ENERGY_LIMIT,
             ENERGY_PRICE,
             BigInteger.ZERO, /* amount */
-            beacon.getBlockHash());
+            beacon.hash);
 
         TransactionReceipt goodDeployReceipt = sendTransaction(goodDeploy);
         assertThat("expected address of deployed contract to be present in receipt of deployment tx",
@@ -161,7 +161,7 @@ public class BeaconHashTest {
         // do that transaction agian, this time with the good beacon hash
         SignedTransaction goodTx1 =
             SignedTransaction.newGeneralTransaction(this.preminedAccount.getPrivateKey(), this.preminedAccount.getNonce(), contract,
-                newData1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */, beacon.getBlockHash());
+                newData1, ENERGY_LIMIT, ENERGY_PRICE, BigInteger.ZERO /* amount */, beacon.hash);
         TransactionReceipt tx1Receipt = sendTransaction(goodTx1);
         assertThat("tx with valid beacon hash should succeed",
             tx1Receipt.transactionWasSuccessful(), is(true));

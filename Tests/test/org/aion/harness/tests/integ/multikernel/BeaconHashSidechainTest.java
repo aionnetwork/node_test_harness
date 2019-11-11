@@ -134,7 +134,7 @@ public class BeaconHashSidechainTest {
             2_000_000,
             10_000_000_000L,
             BigInteger.ONE,
-            firstBlock.getBlockHash());
+            firstBlock.hash);
         ReceiptHash th = getRpcResultOrThrow(rpc2.sendSignedTransaction(transaction),
             "Coulnd't get hash of transaction after sending transaction to kernel2");
 

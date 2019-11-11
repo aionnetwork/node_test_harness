@@ -5,149 +5,101 @@ import java.util.Arrays;
 import org.apache.commons.codec.binary.Hex;
 
 public final class Block {
-    private final long difficulty;
-    private final long blockSizeInBytes;
-    private final long blockEnergyLimit;
-    private final long blockEnergyUsed;
-    private final byte[] hash;
-    private final byte[] parentHash;
-    private final byte[] bloomFilter;
-    private final byte[] receiptTrieRoot;
-    private final byte[] stateRoot;
-    private final BigInteger number;
-    private final BigInteger totalDifficulty;
+    public final BigInteger number;
+    public final byte[] hash;
+    public final byte[] parentHash;
+    public final byte[] bloomFilter;
+    public final byte[] transactionsRoot;
+    public final byte[] stateRoot;
+    public final byte[] receiptTrieRoot;
+    public final BigInteger difficulty;
+    public final BigInteger totalDifficulty;
+    public final long timestamp;
+    public final byte[] coinbase;
+    public final long blockEnergyUsed;
+    public final long blockEnergyLimit;
+    public final byte[] extraData;
+    public final boolean mainChain;
+    public final long blockSizeInBytes;
 
-    public Block(long difficulty, long blockSizeInBytes, long blockEnergyLimit, long blockEnergyUsed,
-        byte[] hash, byte[] parentHash, byte[] bloomFilter, byte[] receiptTrieRoot, byte[] stateRoot,
-        byte[] nonce, BigInteger number, BigInteger totalDifficulty) {
+    // Mining Blocks only
+    public final byte[] nonce;
+    public final byte[] solution;
 
-        this.difficulty = difficulty;
-        this.blockSizeInBytes = blockSizeInBytes;
-        this.blockEnergyLimit = blockEnergyLimit;
-        this.blockEnergyUsed = blockEnergyUsed;
+    // Staking Blocks only
+    public final byte[] seed;
+    public final byte[] signature;
+    public final byte[] publicKey;
+
+    public Block(
+            BigInteger number,
+            byte[] hash,
+            byte[] parentHash,
+            byte[] bloomFilter,
+            byte[] transactionsRoot,
+            byte[] stateRoot,
+            byte[] receiptTrieRoot,
+            BigInteger difficulty,
+            BigInteger totalDifficulty,
+            long timestamp,
+            byte[] coinbase,
+            long blockEnergyUsed,
+            long blockEnergyLimit,
+            byte[] extraData,
+            boolean mainChain,
+            long blockSizeInBytes,
+            byte[] nonce,
+            byte[] solution,
+            byte[] seed,
+            byte[] signature,
+            byte[] publicKey) {
+
+        this.number = number;
         this.hash = Arrays.copyOf(hash, hash.length);
         this.parentHash = Arrays.copyOf(parentHash, parentHash.length);
         this.bloomFilter = Arrays.copyOf(bloomFilter, bloomFilter.length);
-        this.receiptTrieRoot = Arrays.copyOf(receiptTrieRoot, receiptTrieRoot.length);
+        this.transactionsRoot = Arrays.copyOf(transactionsRoot, transactionsRoot.length);
         this.stateRoot = Arrays.copyOf(stateRoot, stateRoot.length);
-        this.number = number;
+        this.receiptTrieRoot = Arrays.copyOf(receiptTrieRoot, receiptTrieRoot.length);
+        this.difficulty = difficulty;
         this.totalDifficulty = totalDifficulty;
-    }
-
-    /**
-     * Returns the difficulty for this block.
-     *
-     * @return the block difficulty.
-     */
-    public long blockDifficulty() {
-        return this.difficulty;
-    }
-
-    /**
-     * Returns the size of this block in bytes.
-     *
-     * @return the size of the block.
-     */
-    public long blockSizeInBytes() {
-        return this.blockSizeInBytes;
-    }
-
-    /**
-     * Returns the total amount of energy that is allowed in this block.
-     *
-     * @return the block's maximum energy limit.
-     */
-    public long getBlockEnergyLimit() {
-        return this.blockEnergyLimit;
-    }
-
-    /**
-     * Returns the amount of energy used by all of the transactions in this block.
-     *
-     * @return the block's total energy used.
-     */
-    public long getBlockEnergyUsed() {
-        return this.blockEnergyUsed;
-    }
-
-    /**
-     * Returns the hash of this block.
-     *
-     * @return the block's hash.
-     */
-    public byte[] getBlockHash() {
-        return Arrays.copyOf(this.hash, this.hash.length);
-    }
-
-    /**
-     * Returns the hash of the block that is the parent of this block.
-     *
-     * If this block is block number N then its parent is block number N-1.
-     *
-     * @return the parent block's hash.
-     */
-    public byte[] getParentBlockHash() {
-        return Arrays.copyOf(this.parentHash, this.parentHash.length);
-    }
-
-    /**
-     * Returns the bloom filter for all of the logs in this block.
-     *
-     * @return the bloom filter for the logs in this block.
-     */
-    public byte[] getBloomFilter() {
-        return Arrays.copyOf(this.bloomFilter, this.bloomFilter.length);
-    }
-
-    /**
-     * Returns the root of the final receipts trie for the block.
-     *
-     * @return the root of the receipts trie for the receipts in this block.
-     */
-    public byte[] getTransactionReceiptsTrieRoot() {
-        return Arrays.copyOf(this.receiptTrieRoot, this.receiptTrieRoot.length);
-    }
-
-    /**
-     * Returns the root of the final state trie for the block.
-     *
-     * @return the root of the state trie for the block.
-     */
-    public byte[] getStateRoot() {
-        return Arrays.copyOf(this.stateRoot, this.stateRoot.length);
-    }
-
-    /**
-     * Returns the number of this block.
-     *
-     * @return the block's number.
-     */
-    public BigInteger getBlockNumber() {
-        return this.number;
-    }
-
-    /**
-     * Returns the sum of all the block difficulties up to and including this block.
-     *
-     * @return the total difficulty of the chain at this block.
-     */
-    public BigInteger getTotalDifficulty() {
-        return this.totalDifficulty;
+        this.timestamp = timestamp;
+        this.coinbase = Arrays.copyOf(coinbase, coinbase.length);
+        this.blockEnergyUsed = blockEnergyUsed;
+        this.blockEnergyLimit = blockEnergyLimit;
+        this.extraData = Arrays.copyOf(extraData, extraData.length);
+        this.mainChain = mainChain;
+        this.blockSizeInBytes = blockSizeInBytes;
+        this.nonce = (nonce == null) ? null : Arrays.copyOf(nonce, nonce.length);
+        this.solution = (solution == null) ? null : Arrays.copyOf(solution, solution.length);
+        this.seed = (seed == null) ? null : Arrays.copyOf(seed, seed.length);
+        this.signature = (signature == null) ? null : Arrays.copyOf(signature, signature.length);
+        this.publicKey = (publicKey == null) ? null : Arrays.copyOf(publicKey, publicKey.length);
     }
 
     @Override
     public String toString() {
         return "Block { number = " + this.number
-            + ", difficulty = " + this.difficulty
-            + ", total difficulty = " + this.totalDifficulty
-            + ", block energy limit = " + this.blockEnergyLimit
-            + ", block energy used = " + this.blockEnergyUsed
-            + ", block size (in bytes) = " + this.blockSizeInBytes
             + ", hash = 0x" + Hex.encodeHexString(this.hash)
             + ", parent hash = 0x" + Hex.encodeHexString(this.parentHash)
+            + ", bloom filter = 0x" + Hex.encodeHexString(this.bloomFilter) + " }"
+            + ", transactions root = 0x" + Hex.encodeHexString(this.transactionsRoot)
             + ", state root = 0x" + Hex.encodeHexString(this.stateRoot)
             + ", receipts root = 0x" + Hex.encodeHexString(this.receiptTrieRoot)
-            + ", bloom filter = 0x" + Hex.encodeHexString(this.bloomFilter) + " }";
+            + ", difficulty = " + this.difficulty
+            + ", total difficulty = " + this.totalDifficulty
+            + ", timestamp = " + this.timestamp
+            + ", coinbase = 0x" + Hex.encodeHexString(this.coinbase)
+            + ", block energy used = " + this.blockEnergyUsed
+            + ", block energy limit = " + this.blockEnergyLimit
+            + ", extraData = 0x" + Hex.encodeHexString(this.extraData)
+            + ", mainChain = " + this.mainChain
+            + ", block size (in bytes) = " + this.blockSizeInBytes
+            + ", nonce = 0x" + Hex.encodeHexString(this.nonce)
+            + ", solution = 0x" + Hex.encodeHexString(this.solution)
+            + ", seed = 0x" + Hex.encodeHexString(this.seed)
+            + ", signature = 0x" + Hex.encodeHexString(this.signature)
+            + ", publicKey = 0x" + Hex.encodeHexString(this.publicKey);
     }
 
     /**
