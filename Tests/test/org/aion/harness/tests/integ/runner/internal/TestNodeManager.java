@@ -56,17 +56,12 @@ public final class TestNodeManager {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
 
-            // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
-            if (nodeType == NodeType.JAVA_NODE) {
-                UnityBootstrapJava.bootstrap();
-            }
-
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();
 
             // Initialize the node.
             NodeConfigurations configurations = NodeConfigurations.alwaysUseBuiltKernel(
-                Network.CUSTOM, expectedKernelLocation, DatabaseOption.PRESERVE_DATABASE);
+                Network.CUSTOM, expectedKernelLocation, DatabaseOption.DO_NOT_PRESERVE_DATABASE);
             LocalNode node = NodeFactory.getNewLocalNodeInstance(nodeType);
             node.configure(configurations);
 
@@ -79,6 +74,11 @@ public final class TestNodeManager {
             result = node.start();
             if (!result.isSuccess()) {
                 throw new TestRunnerInitializationException("Failed to start the node: " + result.getError());
+            }
+
+            // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
+            if (nodeType == NodeType.JAVA_NODE) {
+                UnityBootstrapJava.bootstrap();
             }
 
             this.localNode = node;

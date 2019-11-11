@@ -9,7 +9,7 @@ public class UnityBootstrapJava {
     private static final String BOOTSTRAP_PATH = System.getProperty("user.dir") + "/../tooling/customBootstrap";
 
     public static void bootstrap() throws IOException, InterruptedException {
-        ProcessBuilder builder = new ProcessBuilder("./customNetworkBootstrap.sh").directory(new File(BOOTSTRAP_PATH));
+        ProcessBuilder builder = new ProcessBuilder("./bootstrap.sh").directory(new File(BOOTSTRAP_PATH));
         Process bootstrapper = builder.start();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(bootstrapper.getInputStream()));
