@@ -8,8 +8,8 @@ import java.io.InputStreamReader;
 public class UnityBootstrap {
     private static final String BOOTSTRAP_PATH = System.getProperty("user.dir") + "/../tooling/customBootstrap";
 
-    public static void bootstrap() throws IOException, InterruptedException {
-        ProcessBuilder builder = new ProcessBuilder("./bootstrap.sh").directory(new File(BOOTSTRAP_PATH));
+    public static void bootstrap(String port) throws IOException, InterruptedException {
+        ProcessBuilder builder = new ProcessBuilder("./bootstrap.sh", port).directory(new File(BOOTSTRAP_PATH));
         Process bootstrapper = builder.start();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(bootstrapper.getInputStream()));

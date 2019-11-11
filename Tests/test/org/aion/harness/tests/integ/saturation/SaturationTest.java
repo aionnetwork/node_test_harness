@@ -10,6 +10,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.aion.equihash.EquihashMiner;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.BulkRawTransactionBuilder;
 import org.aion.harness.kernel.BulkRawTransactionBuilder.TransactionType;
@@ -33,6 +34,8 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.Result;
 import org.aion.harness.result.RpcResult;
+import org.aion.harness.tests.integ.runner.internal.StakingBlockSigner;
+import org.aion.harness.tests.integ.runner.internal.UnityBootstrap;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
@@ -50,6 +53,8 @@ public class SaturationTest {
     private static PrivateKey preminedAccount;
     private static BigInteger preminedNonce = BigInteger.ZERO;
     private static JavaPrepackagedLogEvents prepackagedLogEvents = new JavaPrepackagedLogEvents();
+    private static EquihashMiner miner = EquihashMiner.defaultMiner();
+    private static StakingBlockSigner signer = StakingBlockSigner.defaultStakingBlockSigner();
 
     private static final String PREMINED_KEY = "4c3c8a7c0292bc55d97c50b4bdabfd47547757d9e5c194e89f66f25855baacd0";
     private static final BigInteger INITIAL_SENDER_BALANCE = BigInteger.valueOf(1_000_000_000_000_000_000L).multiply(BigInteger.valueOf(100));
@@ -68,11 +73,16 @@ public class SaturationTest {
         checkKernelExistsAndOverwriteConfigs();
         node = initializeNode();
         startNode(node);
+        miner.startMining();
+        UnityBootstrap.bootstrap("8545");
+        signer.start();
         preminedAccount = initializePreminedAccount();
     }
 
     @AfterClass
     public static void tearDownNode() throws Exception {
+        signer.stop();
+        miner.stopMining();
         if ((node != null) && (node.isAlive())) {
             node.stop();
         }

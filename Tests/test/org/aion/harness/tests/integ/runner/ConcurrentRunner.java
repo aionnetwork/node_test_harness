@@ -56,8 +56,8 @@ public final class ConcurrentRunner extends Runner {
     // Maximum number of threads to be used to run the tests. Our max is high because our tests are IO-bound.
     private static final int MAX_NUM_THREADS = 50;
 
-    private final EquihashMiner miner = new EquihashMiner();
-    private Process stakingBlockSigner = null;
+    private final EquihashMiner miner = EquihashMiner.defaultMiner();
+    private StakingBlockSigner stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
 
     private final RunnerHelper helper;
 
@@ -120,8 +120,8 @@ public final class ConcurrentRunner extends Runner {
 
             try {
                 // StakingBlockSigner currently needs to be started after the node's rpc is up and running
-                stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner().start();
-                
+                stakingBlockSigner.start();
+
                 // Run every @BeforeClass method in any of the test classes.
                 List<FailedClass> failedClasses = runAllBeforeClassMethodsAndReturnFailedClasses(nt);
 
@@ -148,7 +148,7 @@ public final class ConcurrentRunner extends Runner {
                 throw new UnexpectedTestRunnerException("Unexpected throwable!", e);
             } finally {
                 miner.stopMining();
-                stakingBlockSigner.destroy();
+                stakingBlockSigner.stop();
 
                 // Ensure that the node gets shut down properly.
                 stopNode(testNodeManager);

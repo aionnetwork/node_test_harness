@@ -77,7 +77,7 @@ public final class TestNodeManager {
             }
 
             // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
-            UnityBootstrap.bootstrap();
+            UnityBootstrap.bootstrap("8545");
 
             this.localNode = node;
         }

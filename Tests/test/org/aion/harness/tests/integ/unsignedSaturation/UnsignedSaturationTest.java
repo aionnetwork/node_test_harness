@@ -9,6 +9,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.aion.equihash.EquihashMiner;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.BulkRawTransactionBuilder;
 import org.aion.harness.kernel.BulkRawTransactionBuilder.TransactionType;
@@ -34,6 +35,8 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.Result;
 import org.aion.harness.result.RpcResult;
+import org.aion.harness.tests.integ.runner.internal.StakingBlockSigner;
+import org.aion.harness.tests.integ.runner.internal.UnityBootstrap;
 import org.aion.harness.tests.integ.saturation.ProcessedTransactionEventHolder;
 import org.aion.harness.tests.integ.saturation.SaturationReport;
 import org.apache.commons.codec.binary.Hex;
@@ -56,6 +59,8 @@ public class UnsignedSaturationTest {
     private static JavaNode node;
     private static PrivateKey preminedAccount;
     private static JavaPrepackagedLogEvents prepackagedLogEvents = new JavaPrepackagedLogEvents();
+    private static EquihashMiner miner = EquihashMiner.defaultMiner();
+    private static StakingBlockSigner signer = StakingBlockSigner.defaultStakingBlockSigner();
 
     public static final String PASSWORD = "password";
     private static final String PREMINED_KEY = "4c3c8a7c0292bc55d97c50b4bdabfd47547757d9e5c194e89f66f25855baacd0";
@@ -77,6 +82,8 @@ public class UnsignedSaturationTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
+        signer.stop();
+        miner.stopMining();
         if ((node != null) && (node.isAlive())) {
             node.stop();
         }
@@ -98,6 +105,9 @@ public class UnsignedSaturationTest {
 
         // 2. Now start the node up.
         startNode(node);
+        miner.startMining();
+        UnityBootstrap.bootstrap("8545");
+        signer.start();
 
         // 3. Some basic assertions to catch any silly static errors.
         assertPreminedAccountHasSufficientBalanceToTransfer();
