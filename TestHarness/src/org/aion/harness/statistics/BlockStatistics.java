@@ -91,12 +91,12 @@ public final class BlockStatistics {
         List<BigDecimal> energyUsedPercentages = new ArrayList<>();
 
         for (Block block : this.blocks) {
-            blockNumbers.add(block.getBlockNumber());
+            blockNumbers.add(block.number);
 
-            BigDecimal energyLimit = BigDecimal.valueOf(block.getBlockEnergyLimit());
+            BigDecimal energyLimit = BigDecimal.valueOf(block.blockEnergyLimit);
             energyLimits.add(energyLimit);
 
-            BigDecimal energyUsed = BigDecimal.valueOf(block.getBlockEnergyUsed());
+            BigDecimal energyUsed = BigDecimal.valueOf(block.blockEnergyUsed);
             energyUsedAmounts.add(energyUsed);
 
             BigDecimal usedPercentage = energyUsed.divide(energyLimit, precision, RoundingMode.HALF_UP);
