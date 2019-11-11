@@ -1,9 +1,7 @@
 package org.aion.harness.tests.integ.runner;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -122,7 +120,7 @@ public final class ConcurrentRunner extends Runner {
 
             try {
                 // StakingBlockSigner currently needs to be started after the node's rpc is up and running
-                stakingBlockSigner = StakingBlockSigner.startExternalStaker();
+                stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner().start();
                 
                 // Run every @BeforeClass method in any of the test classes.
                 List<FailedClass> failedClasses = runAllBeforeClassMethodsAndReturnFailedClasses(nt);
