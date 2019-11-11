@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class KernelTest {
-    private static final String KEYSTORE_PATH = TestHelper.EXPECTED_BUILD_LOCATION + File.separator + TestHelper.DEFAULT_NETWORK + File.separator + "keystore";
+    private static final File KEYSTORE_PATH = new File(new File(TestHelper.EXPECTED_KERNEL_ROOT, TestHelper.DEFAULT_NETWORK.string()), "keystore");
     private JavaNode node;
 
     @Before
@@ -31,6 +31,6 @@ public class KernelTest {
     @Test
     public void testClearKeystore() throws Exception {
         this.node.getKernel().clearKeystore();
-        Assert.assertFalse(new File(KEYSTORE_PATH).exists());
+        Assert.assertFalse(KEYSTORE_PATH.exists());
     }
 }

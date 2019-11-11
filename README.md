@@ -3,15 +3,16 @@ A test harness for functional integration testing of the Aion kernel(s).
 
 This README documents details about the Test Harness library itself.  For a guide to getting started with executing and authoring test cases, start with the [Tests README.md](Tests/README.md).
 
-## How to build the jar?
+## How to build and test Node Test Harness
 We strive to make the `master` branch a ready-to-ship product at every commit, so it is always safe to build the latest version of the project. Otherwise, you can also find jars built at various commits in the `releases` tab.
 
-1) `git clone` the project to your machine.
-2) `cd node_test_harness/TestHarness`
-3) `ant`
+The **first step** is to `git clone` the project to your machine.
 
-You can find the build in the newly created `dist` directory.
+Whether **testing a kernel** or **testing the harness**, you will need an Aion kernel installed (untarred) in the `Tests/oan` directory.
 
+The common case is **using the Node Test Harness to test a kernel or verify a new test of a kernel**.  To do this, run `./gradlew :Tests:test -i -PtestNodes=java` (to test a Java node instance).
+
+To **develop/test the Node Test Harness**, itself, run `./gradlew :TestHarness:test`.  Note that Gradle will build the `TestHarness.jar` required for testing a kernel, even if not explicitly built, so this step is only required when directly working on the harness.
 
 # How to use the framework
 

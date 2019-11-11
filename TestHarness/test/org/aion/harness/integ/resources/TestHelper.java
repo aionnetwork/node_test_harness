@@ -10,26 +10,17 @@ import org.aion.harness.main.NodeFactory;
 import org.apache.commons.io.FileUtils;
 
 public class TestHelper {
+    // Note that the normal install location for the kernel is in Tests, so use that one.
     private static final String WORKING_DIR = System.getProperty("user.dir");
-    public static final String EXPECTED_BUILD_LOCATION = WORKING_DIR + File.separator + "aion";
+    public static final File EXPECTED_KERNEL_ROOT = getDeepChild(new File(WORKING_DIR).getParentFile(), "Tests", "oan");
     public static final Network DEFAULT_NETWORK = Network.CUSTOM;
 
     public static File getDefaultDatabaseLocation() {
-        return new File(
-                EXPECTED_BUILD_LOCATION
-                        + File.separator
-                        + DEFAULT_NETWORK.string()
-                        + File.separator
-                        + "database");
+        return getDeepChild(EXPECTED_KERNEL_ROOT, DEFAULT_NETWORK.string(), "database");
     }
 
     public static File getDatabaseLocationByNetwork(Network network) {
-        return new File(
-                EXPECTED_BUILD_LOCATION
-                        + File.separator
-                        + network.string()
-                        + File.separator
-                        + "database");
+        return getDeepChild(EXPECTED_KERNEL_ROOT, network.string(), "database");
     }
 
     public static LocalNode configureDefaultLocalNodeAndDoNotPreserveDatabase() throws IOException {
@@ -52,29 +43,27 @@ public class TestHelper {
 
     private static LocalNode getDefaultLocalNode(Network network, DatabaseOption databaseOption)
             throws IOException {
-        File expectedBuildLocation = new File(EXPECTED_BUILD_LOCATION);
-
-        if (!expectedBuildLocation.exists()) {
+        if (!EXPECTED_KERNEL_ROOT.exists()) {
             System.err.println(
                     "-------------------------------------------------------------------------------------------");
             System.err.println(
                     "ERROR: This test expects there to be an already built kernel for it to run against!");
             System.err.println(
                     "The built kernel is expected to be found at the following location: "
-                            + EXPECTED_BUILD_LOCATION);
+                            + EXPECTED_KERNEL_ROOT);
             System.err.println(
                     "-------------------------------------------------------------------------------------------");
             throw new IOException("Failed to find expected built kernel for test!");
         }
 
-        if (!expectedBuildLocation.isDirectory()) {
+        if (!EXPECTED_KERNEL_ROOT.isDirectory()) {
             System.err.println(
                     "-------------------------------------------------------------------------------------------");
             System.err.println(
                     "ERROR: This test expects there to be an already built kernel for it to run against!");
             System.err.println(
                     "A file was found at the expected location but it is not a directory: "
-                            + EXPECTED_BUILD_LOCATION);
+                            + EXPECTED_KERNEL_ROOT);
             System.err.println("This must be the root directory of the built kernel.");
             System.err.println(
                     "-------------------------------------------------------------------------------------------");
@@ -82,17 +71,15 @@ public class TestHelper {
         }
 
         // Overwrites the config, fork and genesis files of each network.
-        FileUtils.copyDirectory(new File(WORKING_DIR + "/resources/config"), new File(EXPECTED_BUILD_LOCATION + "/config"));
-        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/avmtestnet"), new File(EXPECTED_BUILD_LOCATION + "/avmtestnet/config"));
-        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/conquest"), new File(EXPECTED_BUILD_LOCATION + "/conquest/config"));
-        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/custom"), new File(EXPECTED_BUILD_LOCATION + "/custom/config"));
-        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/mastery"), new File(EXPECTED_BUILD_LOCATION + "/mastery/config"));
-        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/mainnet"), new File(EXPECTED_BUILD_LOCATION + "/mainnet/config"));
+        FileUtils.copyDirectory(new File(WORKING_DIR + "/resources/config"), getDeepChild(EXPECTED_KERNEL_ROOT, "config"));
+        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/custom"), getDeepChild(EXPECTED_KERNEL_ROOT, "custom", "config"));
+        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/mainnet"), getDeepChild(EXPECTED_KERNEL_ROOT, "mainnet", "config"));
+        overwriteIfTargetDirExists(new File(WORKING_DIR + "/resources/config/amity"), getDeepChild(EXPECTED_KERNEL_ROOT, "amity", "config"));
 
         LocalNode node = NodeFactory.getNewLocalNodeInstance(NodeFactory.NodeType.JAVA_NODE);
         node.configure(
                 NodeConfigurations.alwaysUseBuiltKernel(
-                        network, EXPECTED_BUILD_LOCATION, databaseOption));
+                        network, EXPECTED_KERNEL_ROOT.getAbsolutePath(), databaseOption));
         return node;
     }
 
@@ -100,5 +87,13 @@ public class TestHelper {
         if (target.exists()) {
             FileUtils.copyDirectory(source, target);
         }
+    }
+
+    private static File getDeepChild(File parent, String... fragments) {
+        File result = parent;
+        for (String fragment : fragments) {
+            result = new File(result, fragment);
+        }
+        return result;
     }
 }

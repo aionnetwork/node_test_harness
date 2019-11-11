@@ -5,6 +5,7 @@
 .classpath
 .project
 .settings/
+bin/
 
 # IntelliJ
 .idea/
@@ -16,12 +17,10 @@
 *out
 build
 TestHarness/dist
-TestHarness/aion
 TestHarness/reports
 TestHarness/logs
-Tests/aion
+Tests/oan
 Tests/config
 Tests/logs
-Tests/lib/kernel.tar.bz2
 .gradle/
 report/
