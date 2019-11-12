@@ -11,12 +11,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.aion.equihash.EquihashMiner;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.event.JavaPrepackagedLogEvents;
 import org.aion.harness.main.event.RustPrepackagedLogEvents;
 import org.aion.harness.tests.integ.runner.exception.TestRunnerInitializationException;
 import org.aion.harness.tests.integ.runner.exception.UnsupportedAnnotation;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccountFunder;
+import org.aion.harness.tests.integ.runner.internal.StakingBlockSigner;
 import org.aion.harness.tests.integ.runner.internal.TestAndResultQueueManager;
 import org.aion.harness.tests.integ.runner.internal.TestContext;
 import org.aion.harness.tests.integ.runner.internal.TestExecutor;
@@ -50,6 +52,9 @@ public final class SequentialRunner extends Runner {
     private final Class<?> testClass;
     private final Description testClassDescription;
     private final Map<NodeType, Description> nodeType2Description;
+
+    private final EquihashMiner miner = EquihashMiner.defaultMiner();
+    private StakingBlockSigner stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
 
     public SequentialRunner(Class<?> testClass) {
         this.helper = new RunnerHelper();
@@ -88,6 +93,9 @@ public final class SequentialRunner extends Runner {
         PrintStream originalStderr = helper.replaceStderrWithThreadSpecificErrorStream();
 
         for(NodeType nt : nodeType2Description.keySet()) {
+
+            miner.startMining();
+
             TestNodeManager testNodeManager = new TestNodeManager(nt);
             Description nodeDescription = nodeType2Description.get(nt);
 
@@ -111,6 +119,8 @@ public final class SequentialRunner extends Runner {
                 // Run all of the test methods now. No exceptions will be thrown here.
                 if (!beforeClassFailed) {
                     initializeAndStartNode(testNodeManager);
+                    // StakingBlockSigner currently needs to be started after the node's rpc is up and running
+                    stakingBlockSigner.start();
                     runTests(runNotifier, nodeDescription.getChildren(), nt, testNodeManager);
                 }
 
@@ -131,6 +141,8 @@ public final class SequentialRunner extends Runner {
                 e.printStackTrace();
                 throw e;
             } finally {
+                miner.stopMining();
+                stakingBlockSigner.stop();
                 // Ensure that the node gets shut down properly.
                 stopNode(testNodeManager);
 
