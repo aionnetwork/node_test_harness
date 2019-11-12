@@ -8,9 +8,11 @@ We strive to make the `master` branch a ready-to-ship product at every commit, s
 
 The **first step** is to `git clone` the project to your machine.
 
-Whether **testing a kernel** or **testing the harness**, you will need an Aion kernel installed (untarred) in the `Tests/oan` directory.
+Whether **testing a kernel** or **testing the harness**, you will need either an Aion Java kernel installed (untarred) in the `Tests/oan` directory, or an Aion Rust kernel installed (untarred) in the `Tests/aionr` directory.
 
-The common case is **using the Node Test Harness to test a kernel or verify a new test of a kernel**.  To do this, run `./gradlew :Tests:test -i -PtestNodes=java` (to test a Java node instance).
+The common case is **using the Node Test Harness to test a kernel or verify a new test of a kernel**.  To do this, run `./gradlew :Tests:test -i -PtestNodes=java` to test a Java node instance, or `./gradlew :Tests:test -i -PtestNodes=rust` to test a Rust node instance.
+
+In the case of running a Rust kernel, it is a good idea to run the `custom.sh` script in the `aionr` folder once before running the tests to make sure you have all the required dependencies installed on your machine.
 
 To **develop/test the Node Test Harness**, itself, run `./gradlew :TestHarness:test`.  Note that Gradle will build the `TestHarness.jar` required for testing a kernel, even if not explicitly built, so this step is only required when directly working on the harness.
 
