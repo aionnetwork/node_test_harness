@@ -30,7 +30,9 @@ public class StakingBlockSigner {
         if (process != null) { return; }
 
         try {
-            ProcessBuilder builder = new ProcessBuilder("java", "-cp", "block_signer.jar:lib/*", "org.aion.staker.BlockSigner", signingAddressPrivateKey, coinbaseAddress, ip, port)
+            // "amity" is a hack to make this work. The Block signer doesn't have a "custom" option,
+            // but the address used to deploy the staking contract on amity is the same one we use here.
+            ProcessBuilder builder = new ProcessBuilder("java", "-jar", "block_signer.jar", signingAddressPrivateKey, coinbaseAddress, "amity", ip, port)
                 .directory(new File(EXTERNAL_STAKER_PATH))
                 .redirectOutput(new File("/dev/null"));
             process = builder.start();
