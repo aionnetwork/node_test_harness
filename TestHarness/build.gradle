@@ -26,6 +26,12 @@ sourceSets {
     }
 }
 
+// We need to define how to scoop the test classes for the integTest target, since that is not default Gradle behaviour.
+task integTest(type: Test) {
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+    classpath = sourceSets.integTest.runtimeClasspath
+}
+
 dependencies {
     compile fileTree(dir: 'lib', include: ['*.jar'])
 }
