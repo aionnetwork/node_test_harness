@@ -24,14 +24,19 @@ public final class TransactionLog {
     private final byte[] data;
     private final List<byte[]> topics;
     public final BigInteger blockNumber;
+    private final byte[] blockHash;
     public final int transactionIndex;
     public final int logIndex;
 
-    public TransactionLog(Address address, byte[] data, List<byte[]> topics, BigInteger blockNumber, int transactionIndex, int logIndex) {
+    public TransactionLog(Address address, byte[] data, List<byte[]> topics, BigInteger blockNumber, byte[] blockHash, int transactionIndex, int logIndex) {
         this.address = address;
         this.data = Arrays.copyOf(data, data.length);
         this.topics = copyOfBytesList(topics);
         this.blockNumber = blockNumber;
+        // Note that "blockHash" doesn't appear in the logs when fetched from the receipt so it can be null.
+        this.blockHash = (null != blockHash)
+                ? Arrays.copyOf(blockHash, blockHash.length)
+                : null;
         this.transactionIndex = transactionIndex;
         this.logIndex = logIndex;
     }
@@ -52,6 +57,17 @@ public final class TransactionLog {
      */
     public List<byte[]> copyOfTopics() {
         return copyOfBytesList(this.topics);
+    }
+
+    /**
+     * Returns a copy of the block hash.
+     *
+     * @return the block hash.
+     */
+    public byte[] copyOfBlockHash() {
+        return (null != blockHash)
+                ? Arrays.copyOf(this.blockHash, this.blockHash.length)
+                : null;
     }
 
     @Override
@@ -84,6 +100,9 @@ public final class TransactionLog {
             return false;
         }
         if (!Arrays.equals(this.data, otherLog.data)) {
+            return false;
+        }
+        if (!Arrays.equals(this.blockHash, otherLog.blockHash)) {
             return false;
         }
 

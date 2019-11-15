@@ -19,6 +19,7 @@ public final class TransactionLogBuilder {
     private byte[] data = null;
     private List<byte[]> topics = null;
     private BigInteger blockNumber = null;
+    private byte[] blockHash = null;
     private Integer transactionIndex = null;
     private Integer logIndex = null;
 
@@ -39,6 +40,11 @@ public final class TransactionLogBuilder {
 
     public TransactionLogBuilder blockNumber(BigInteger blockNumber) {
         this.blockNumber = blockNumber;
+        return this;
+    }
+
+    public TransactionLogBuilder blockHash(byte[] blockHash) {
+        this.blockHash = blockHash;
         return this;
     }
 
@@ -71,7 +77,7 @@ public final class TransactionLogBuilder {
 
         List<byte[]> topics = (this.topics == null) ? Collections.emptyList() : this.topics;
 
-        return new TransactionLog(this.address, this.data, topics, this.blockNumber, this.transactionIndex, this.logIndex);
+        return new TransactionLog(this.address, this.data, topics, this.blockNumber, this.blockHash, this.transactionIndex, this.logIndex);
     }
 
     public TransactionLog buildFromJsonString(String jsonString) throws DecoderException {
@@ -81,17 +87,23 @@ public final class TransactionLogBuilder {
         String data = jsonParser.attributeToString("data");
         String topics = jsonParser.attributeToString("topics");
         String blockNumber = jsonParser.attributeToString("blockNumber");
+        String blockHash = jsonParser.attributeToString("blockHash");
         String transactionIndex = jsonParser.attributeToString("transactionIndex");
         String logIndex = jsonParser.attributeToString("logIndex");
 
-        return new TransactionLogBuilder()
+        // Note that "blockHash" doesn't appear in the logs when fetched from the receipt, but does when fetched from getLogs, so handle those 2 cases.
+        TransactionLogBuilder builder = new TransactionLogBuilder()
             .address(new Address(Hex.decodeHex(address)))
             .data(Hex.decodeHex(data))
             .topics(parseJsonTopics(topics))
             .blockNumber(new BigInteger(blockNumber, 16))
             .transactionIndex(Integer.parseInt(transactionIndex, 16))
             .logIndex(Integer.parseInt(logIndex, 16))
-            .build();
+            ;
+        if (null != blockHash) {
+            builder.blockHash(Hex.decodeHex(blockHash));
+        }
+        return builder.build();
     }
 
     private static List<byte[]> parseJsonTopics(String jsonArrayOfTopics) throws DecoderException {

@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -25,7 +26,6 @@ import org.aion.avm.userlib.abi.ABIStreamingEncoder;
 import org.aion.avm.userlib.abi.ABIToken;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.SignedTransaction;
-import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
@@ -36,7 +36,6 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.tests.contracts.avm.LogTarget;
-import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
@@ -72,6 +71,10 @@ public class AvmReceiptLogTest {
         TransactionReceipt receipt = callMethodWriteNoLogs(contract);
         assertTrue(receipt.transactionWasSuccessful());
         assertTrue(receipt.getLogs().isEmpty());
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        List<TransactionLog> logs = rpc.getLatestFilteredLogs(blockNumber, null, contract).getResult();
+        assertTrue(logs.isEmpty());
     }
 
     @Test
@@ -86,6 +89,12 @@ public class AvmReceiptLogTest {
 
         TransactionLog log = logs.get(0);
         assertIsDataOnlyLog(contract, log);
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, null, contract).getResult();
+        assertEquals(1, logs.size());
+        assertIsDataOnlyLog(contract, logs.get(0));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -100,6 +109,12 @@ public class AvmReceiptLogTest {
 
         TransactionLog log = logs.get(0);
         assertIsLogWithOneTopic(contract, log);
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contract).getResult();
+        assertEquals(1, logs.size());
+        assertIsLogWithOneTopic(contract, logs.get(0));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -114,6 +129,12 @@ public class AvmReceiptLogTest {
 
         TransactionLog log = logs.get(0);
         assertIsLogWithTwoTopics(contract, log);
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contract).getResult();
+        assertEquals(1, logs.size());
+        assertIsLogWithTwoTopics(contract, logs.get(0));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -128,6 +149,12 @@ public class AvmReceiptLogTest {
 
         TransactionLog log = logs.get(0);
         assertIsLogWithThreeTopics(contract, log);
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contract).getResult();
+        assertEquals(1, logs.size());
+        assertIsLogWithThreeTopics(contract, logs.get(0));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -142,6 +169,12 @@ public class AvmReceiptLogTest {
 
         TransactionLog log = logs.get(0);
         assertIsLogWithFourTopics(contract, log);
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contract).getResult();
+        assertEquals(1, logs.size());
+        assertIsLogWithFourTopics(contract, logs.get(0));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -181,6 +214,16 @@ public class AvmReceiptLogTest {
         for (boolean foundTopic : foundTopics) {
             assertTrue(foundTopic);
         }
+        
+        // We will search with the 1 topic, so only find 4 (not the data-only one).
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contract).getResult();
+        assertEquals(4, logs.size());
+        assertIsLogWithOneTopic(contract, logs.get(0));
+        assertIsLogWithTwoTopics(contract, logs.get(1));
+        assertIsLogWithThreeTopics(contract, logs.get(2));
+        assertIsLogWithFourTopics(contract, logs.get(3));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     @Test
@@ -265,6 +308,16 @@ public class AvmReceiptLogTest {
         for (boolean foundCalleeTopic : foundCalleeTopics) {
             assertTrue(foundCalleeTopic);
         }
+        
+        // We are only asking about the callee, and only the entries with the topic, so we only see the 4 writes.
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), calleeContract).getResult();
+        assertEquals(4, logs.size());
+        assertIsLogWithOneTopic(calleeContract, logs.get(0));
+        assertIsLogWithTwoTopics(calleeContract, logs.get(1));
+        assertIsLogWithThreeTopics(calleeContract, logs.get(2));
+        assertIsLogWithFourTopics(calleeContract, logs.get(3));
+        assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
     private TransactionReceipt callMethodWriteLogsFromInternalCallAlso(Address caller, Address callee, byte[] data)
