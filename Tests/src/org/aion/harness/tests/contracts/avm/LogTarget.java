@@ -17,6 +17,9 @@ public class LogTarget {
         topic2 = new byte[]{ 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6, 8, 8, 0, 1, 4, 2, 0, 1, 2, 6, 8, 3, 4, 6 };
         topic3 = new byte[]{ 0xf };
         topic4 = new byte[0];
+        
+        // We also want to write a log entry and check for it on the other side (we will use all the topics, just to make more filtering an option).
+        writeDataLogWithFourTopics();
     }
 
     public static byte[] main() {

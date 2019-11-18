@@ -320,6 +320,32 @@ public class AvmReceiptLogTest {
         assertArrayEquals(receipt.getBlockHash(), logs.get(0).copyOfBlockHash());
     }
 
+    @Test
+    public void testFourLogsAndDataOnDeployment() throws Exception {
+        // We inline the deployment logic here since we need the receipt.
+        SignedTransaction transaction = SignedTransaction.newAvmCreateTransaction(
+                this.preminedAccount.getPrivateKey(),
+                this.preminedAccount.getAndIncrementNonce(),
+                getAvmContractBytes(),
+                ENERGY_LIMIT,
+                ENERGY_PRICE,
+                BigInteger.ZERO, null);
+        
+        TransactionReceipt receipt = sendTransaction(transaction);
+        assertTrue(receipt.getAddressOfDeployedContract().isPresent());
+        Address contractAddress = receipt.getAddressOfDeployedContract().get();
+        List<TransactionLog> logs = receipt.getLogs();
+        
+        assertEquals(1, logs.size());
+        assertIsLogWithFourTopics(contractAddress, logs.get(0));
+        
+        long blockNumber = receipt.getBlockNumber().longValue();
+        logs = rpc.getLatestFilteredLogs(blockNumber, Collections.singleton(new byte[]{ 9, 5, 5, 2, 3, 8, 1 }), contractAddress).getResult();
+        assertEquals(1, logs.size());
+        assertIsLogWithFourTopics(contractAddress, logs.get(0));
+    }
+
+
     private TransactionReceipt callMethodWriteLogsFromInternalCallAlso(Address caller, Address callee, byte[] data)
         throws InterruptedException, TimeoutException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         SignedTransaction transaction = makeCallTransaction(caller, "writeLogsFromInternalCallAlso", callee.getAddressBytes(), data);
