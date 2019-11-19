@@ -1,7 +1,10 @@
 package org.aion.harness.tests.integ.runner.internal;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 
 public class StakingBlockSigner {
     public static final String defaultCoinbaseAddress = "0xa02df9004be3c4a20aeb50c459212412b1d0a58da3e1ac70ba74dde6b4accf4b";
@@ -34,8 +37,30 @@ public class StakingBlockSigner {
             // but the address used to deploy the staking contract on amity is the same one we use here.
             ProcessBuilder builder = new ProcessBuilder("java", "-jar", "block_signer.jar", signingAddressPrivateKey, coinbaseAddress, "amity", ip, port)
                 .directory(new File(EXTERNAL_STAKER_PATH))
-                .redirectOutput(new File("/dev/null"));
+                .redirectOutput(Redirect.DISCARD)
+            ;
             process = builder.start();
+            
+            // Stall for a moment to make sure this started up (note that this is unreliable but we only expect this failure in response to environmental issues - missing/incorrect JVM, etc)
+            // (in the future, we could change this to wait out STDOUT being produced in order to consider the tool bootstrapped, etc, if we need this to be reliable).
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new AssertionError("Interruption not used", e);
+            }
+            if (!this.process.isAlive()) {
+                // Read any error this process logged before termination.
+                StringBuilder stringBuilder = new StringBuilder("Failed to start block_signer.jar:\n");
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(this.process.getErrorStream()))) {
+                    String line = null;
+                    while (null != (line = reader.readLine())) {
+                        stringBuilder.append(line);
+                        stringBuilder.append("\n");
+                    }
+                }
+                this.process = null;
+                throw new RuntimeException(stringBuilder.toString());
+            }
         }
         catch (IOException e) {
             throw new RuntimeException("Could not start Staking Block Signer");
