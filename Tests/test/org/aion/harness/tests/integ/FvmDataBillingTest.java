@@ -14,7 +14,6 @@ import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.Event;
 import org.aion.harness.main.event.IEvent;
-import org.aion.harness.main.impl.JavaNode;
 import org.aion.harness.main.types.ReceiptHash;
 import org.aion.harness.main.types.TransactionReceipt;
 import org.aion.harness.result.FutureResult;
@@ -94,7 +93,7 @@ public class FvmDataBillingTest {
         transactionIsSealed = prepackagedLogEventsFactory.build().getTransactionSealedEvent(transaction);
         transactionIsRejected = prepackagedLogEventsFactory.build().getTransactionRejectedEvent(transaction);
         IEvent transactionProcessed = Event.or(transactionIsSealed, transactionIsRejected);
-        FutureResult<LogEventResult> future = this.listener.listenForEvent(transactionProcessed, 2, TimeUnit.MINUTES);
+        FutureResult<LogEventResult> future = this.listener.listenForEvent(transactionProcessed, 5, TimeUnit.MINUTES);
 
         // Send the transaction off.
         System.out.println("Sending the transaction...");
@@ -106,7 +105,7 @@ public class FvmDataBillingTest {
 
         // Wait on the future to complete and ensure we saw the transaction get sealed.
         System.out.println("Waiting for the transaction to process...");
-        LogEventResult listenResult = future.get(2, TimeUnit.MINUTES);
+        LogEventResult listenResult = future.get(5, TimeUnit.MINUTES);
         assertTrue(listenResult.eventWasObserved());
         System.out.println("Transaction was processed!");
 

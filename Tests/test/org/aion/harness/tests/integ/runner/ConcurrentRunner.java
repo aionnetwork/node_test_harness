@@ -188,8 +188,8 @@ public final class ConcurrentRunner extends Runner {
             throw new RuntimeException("Unknown Node Type");
         }
 
-        FutureResult<LogEventResult> resultFuture = listener.listenForEvent(blockSealedEvent, 3, TimeUnit.MINUTES);
-        LogEventResult res = resultFuture.get(3, TimeUnit.MINUTES);
+        FutureResult<LogEventResult> resultFuture = listener.listenForEvent(blockSealedEvent, 5, TimeUnit.MINUTES);
+        LogEventResult res = resultFuture.get(5, TimeUnit.MINUTES);
 
         if (!res.eventWasObserved()) {
             throw new RuntimeException("Didn't observe block sealed string");
