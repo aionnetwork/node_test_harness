@@ -12,17 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.aion.equihash.EquihashMiner;
 import org.aion.harness.main.NodeFactory.NodeType;
-import org.aion.harness.main.NodeListener;
-import org.aion.harness.main.event.Event;
-import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.event.JavaPrepackagedLogEvents;
 import org.aion.harness.main.event.RustPrepackagedLogEvents;
-import org.aion.harness.result.FutureResult;
-import org.aion.harness.result.LogEventResult;
 import org.aion.harness.tests.integ.runner.exception.TestRunnerInitializationException;
 import org.aion.harness.tests.integ.runner.exception.UnexpectedTestRunnerException;
 import org.aion.harness.tests.integ.runner.exception.UnsupportedAnnotation;
@@ -129,8 +122,6 @@ public final class ConcurrentRunner extends Runner {
                 // StakingBlockSigner currently needs to be started after the node's rpc is up and running
                 stakingBlockSigner.start();
 
-                waitForBlock(7, testNodeManager.newNodeListener(), nt);
-
                 // Run every @BeforeClass method in any of the test classes.
                 List<FailedClass> failedClasses = runAllBeforeClassMethodsAndReturnFailedClasses(nt);
 
@@ -176,24 +167,6 @@ public final class ConcurrentRunner extends Runner {
         // Restore the original stdout and stderr back to System.
         System.setOut(originalStdout);
         System.setErr(originalStderr);
-    }
-
-    private void waitForBlock(int num, NodeListener listener, NodeType nt) throws TimeoutException, InterruptedException {
-        IEvent blockSealedEvent;
-        if (nt == NodeType.JAVA_NODE) {
-            blockSealedEvent = new Event("PendingStateImpl.processBest: #" + num);
-        } else if (nt == NodeType.RUST_NODE) {
-            blockSealedEvent = new Event(" block added. #" + num);
-        } else {
-            throw new RuntimeException("Unknown Node Type");
-        }
-
-        FutureResult<LogEventResult> resultFuture = listener.listenForEvent(blockSealedEvent, 5, TimeUnit.MINUTES);
-        LogEventResult res = resultFuture.get(5, TimeUnit.MINUTES);
-
-        if (!res.eventWasObserved()) {
-            throw new RuntimeException("Didn't observe block sealed string");
-        }
     }
 
     /**
