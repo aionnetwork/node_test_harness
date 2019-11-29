@@ -13,7 +13,7 @@ pipeline {
     }
 
     stages {
-        stage('Build Kernel') {
+        stage('Build Kernel Java') {
             steps {
                 dir('javaKernel') {
                     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: 'https://github.com/aionnetwork/aion.git']], branches: [[name: '125ccb59']]], poll: false
@@ -23,10 +23,28 @@ pipeline {
                 sh('tar -C Tests -xjf Tests/oan.tar.bz2')
             }
         }
-        stage('Concurrent Suite') {
+        stage('Concurrent Suite Java') {
             steps {
                 timeout(20) {
                     sh('./gradlew :Tests:test -i -PtestNodes=java')
+                }
+            }
+        }
+        
+        stage('Build Kernel Rust') {
+            steps {
+                dir('rustKernel') {
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: 'https://github.com/aionnetwork/aionr.git']], branches: [[name: '6e864a3']]], poll: false
+                    sh "./resources/package.sh aionr"
+                }
+                sh('cp rustKernel/aionr.tar.gz Tests')
+                sh('tar -C Tests -xvf Tests/aionr.tar.gz')
+            }
+        }
+        stage('Concurrent Suite Rust') {
+            steps {
+                timeout(20) {
+                    sh('./gradlew :Tests:test -i -PtestNodes=rust')
                 }
             }
         }
