@@ -25,7 +25,6 @@ import org.aion.harness.kernel.BulkRawTransactionBuilder;
 import org.aion.harness.kernel.BulkRawTransactionBuilder.TransactionType;
 import org.aion.harness.kernel.PrivateKey;
 import org.aion.harness.kernel.SignedTransaction;
-import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.types.ReceiptHash;
@@ -37,7 +36,6 @@ import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.statistics.DurationStatistics;
 import org.aion.harness.tests.contracts.avm.SimpleContract;
-import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
@@ -222,13 +220,13 @@ public class BulkBalanceTransferTest {
     }
 
     private BigInteger getNonce(Address address) throws InterruptedException {
-        RpcResult<BigInteger> nonceResult = this.rpc.getNonce(address);
+        RpcResult<BigInteger> nonceResult = rpc.getNonce(address);
         assertRpcSuccess(nonceResult);
         return nonceResult.getResult();
     }
 
     private BigInteger getBalance(Address address) throws InterruptedException {
-        RpcResult<BigInteger> balanceResult = this.rpc.getBalance(address);
+        RpcResult<BigInteger> balanceResult = rpc.getBalance(address);
         assertRpcSuccess(balanceResult);
         return balanceResult.getResult();
     }

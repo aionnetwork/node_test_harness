@@ -11,7 +11,6 @@ import org.aion.avm.core.dappreading.JarBuilder;
 import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.SignedTransaction;
-import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.types.ReceiptHash;
@@ -21,7 +20,6 @@ import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.tests.contracts.Assertions;
 import org.aion.harness.tests.contracts.avm.AvmFailureModes;
-import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
@@ -62,7 +60,7 @@ public class AvmFailuresTest {
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)0);
         boolean wasSuccess = receipt.transactionWasSuccessful();
         long energyConsumed = receipt.getTransactionEnergyConsumed();
-        Assert.assertEquals(true, wasSuccess);
+        Assert.assertTrue(wasSuccess);
         Assert.assertEquals(21378, energyConsumed);
     }
 
@@ -74,7 +72,7 @@ public class AvmFailuresTest {
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)1);
         boolean wasSuccess = receipt.transactionWasSuccessful();
         long energyConsumed = receipt.getTransactionEnergyConsumed();
-        Assert.assertEquals(false, wasSuccess);
+        Assert.assertFalse(wasSuccess);
         Assert.assertEquals(ENERGY_LIMIT, energyConsumed);
     }
 
@@ -86,7 +84,7 @@ public class AvmFailuresTest {
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)2);
         boolean wasSuccess = receipt.transactionWasSuccessful();
         long energyConsumed = receipt.getTransactionEnergyConsumed();
-        Assert.assertEquals(false, wasSuccess);
+        Assert.assertFalse(wasSuccess);
         Assert.assertEquals(21378, energyConsumed);
     }
 
@@ -98,7 +96,7 @@ public class AvmFailuresTest {
         TransactionReceipt receipt = sendTransactionToContract(contract, (byte)3);
         boolean wasSuccess = receipt.transactionWasSuccessful();
         long energyConsumed = receipt.getTransactionEnergyConsumed();
-        Assert.assertEquals(false, wasSuccess);
+        Assert.assertFalse(wasSuccess);
         Assert.assertEquals(ENERGY_LIMIT, energyConsumed);
     }
 

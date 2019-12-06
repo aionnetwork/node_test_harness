@@ -16,7 +16,6 @@ import org.aion.avm.userlib.CodeAndArguments;
 import org.aion.harness.kernel.Address;
 import org.aion.harness.kernel.SignedTransaction;
 import org.aion.harness.kernel.Transaction;
-import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.RPC;
 import org.aion.harness.main.event.IEvent;
 import org.aion.harness.main.types.ReceiptHash;
@@ -25,7 +24,6 @@ import org.aion.harness.result.FutureResult;
 import org.aion.harness.result.LogEventResult;
 import org.aion.harness.result.RpcResult;
 import org.aion.harness.tests.contracts.avm.ByteArrayHolder;
-import org.aion.harness.tests.integ.runner.ExcludeNodeType;
 import org.aion.harness.tests.integ.runner.internal.LocalNodeListener;
 import org.aion.harness.tests.integ.runner.internal.PreminedAccount;
 import org.aion.harness.tests.integ.runner.SequentialRunner;
@@ -78,7 +76,7 @@ public class AvmTxSmokeTest {
         Address contract = deployReceipt.getAddressOfDeployedContract().get();
 
         // check initial state of deployed contract
-        byte[] result = this.rpc.call(new Transaction(contract, null));
+        byte[] result = rpc.call(new Transaction(contract, null));
         assertThat("initial state of deployed contract",
             Arrays.equals(result, new byte[] { 0x1, 0x2 }),
             is(true));
@@ -95,7 +93,7 @@ public class AvmTxSmokeTest {
         assertThat(tx1Receipt, is(not(nullValue()))); // can get more rigourous with this
 
         // check state of deployed contract after tx1
-        byte[] resultAfterTx1 = this.rpc.call(new Transaction(contract, null));
+        byte[] resultAfterTx1 = rpc.call(new Transaction(contract, null));
         assertThat("data field of contract should have changed",
             Arrays.equals(resultAfterTx1, newData1),
             is(true));
@@ -112,7 +110,7 @@ public class AvmTxSmokeTest {
         assertThat(tx2Receipt, is(not(nullValue()))); // can get more rigourous with this
 
         // check state of deployed contract after tx1
-        byte[] resultAfterTx2 = this.rpc.call(new Transaction(contract, null));
+        byte[] resultAfterTx2 = rpc.call(new Transaction(contract, null));
         assertThat("data field of contract should have changed",
             Arrays.equals(resultAfterTx2, newData2),
             is(true));
