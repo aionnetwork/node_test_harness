@@ -236,7 +236,7 @@ public class MetaTransactionTest {
         assertFalse(receipt.transactionWasSuccessful());
 
         assertEquals(BigInteger.valueOf(1_000_000_000L), rpc.getBalance(freeloaderAccount.getAddress()).getResult());
-        assertEquals(BigInteger.ONE, rpc.getNonce(freeloaderAccount.getAddress()).getResult());
+        assertEquals(BigInteger.ZERO, rpc.getNonce(freeloaderAccount.getAddress()).getResult());
 
         byte[] hashedInvokable = SignedInvokableTransactionBuilder.getTransactionHashOfSignedTransaction(innerTx);
 

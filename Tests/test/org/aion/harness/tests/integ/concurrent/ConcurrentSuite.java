@@ -32,9 +32,8 @@ import org.junit.runners.Suite;
     , RemovedStorageTest.class
     , AvmReceiptLogTest.class
     , InternalTxTest.class
-    // TODO THESE TESTS IGNORED ONLY UNTIL EXTERNAL STAKER IS ADDED
-    //, MetaTransactionTest.class
-    //, BeaconHashTest.class
+    , MetaTransactionTest.class
+    , BeaconHashTest.class
 })
 public class ConcurrentSuite {
     /**

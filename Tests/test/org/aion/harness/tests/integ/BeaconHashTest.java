@@ -62,7 +62,7 @@ public class BeaconHashTest {
         long bn = -1;
         long t0 = System.nanoTime();
 
-        while(bn < 3 && System.nanoTime() - t0 < BLOCK_WAIT_TIMEOUT_NANOS) {
+        while(bn < 5 && System.nanoTime() - t0 < BLOCK_WAIT_TIMEOUT_NANOS) {
             RpcResult<Long> maybeBn = rpc.blockNumber();
             if (!maybeBn.isSuccess()) {
                 throw new RuntimeException(
@@ -119,7 +119,7 @@ public class BeaconHashTest {
         RpcResult<ReceiptHash> badDeployResult = rpc.sendSignedTransaction(badDeploy);
         assertThat("Transaction with beacon hash that is not present in blockchain should fail",
             badDeployResult.isSuccess(), is(false));
-        assertThat(badDeployResult.getError().contains("Invalid transaction object"), is(true));
+        assertThat(badDeployResult.getError(), badDeployResult.getError().contains("Invalid transaction object") || badDeployResult.getError().contains("Invalid transaction beacon hash"), is(true));
 
         // build contract deployment Tx with the good beacon hash and check that it succeeds
         SignedTransaction goodDeploy = SignedTransaction.newAvmCreateTransaction(
@@ -156,7 +156,7 @@ public class BeaconHashTest {
         RpcResult<ReceiptHash> badTx1Result = rpc.sendSignedTransaction(badTx1);
         assertThat("tx with invalid beacon hash should not succeed",
             badTx1Result.isSuccess(), is(false));
-        assertThat(badTx1Result.getError().contains("Invalid transaction object"), is(true));
+        assertThat(badDeployResult.getError(), badDeployResult.getError().contains("Invalid transaction object") || badDeployResult.getError().contains("Invalid transaction beacon hash"), is(true));
 
         // do that transaction agian, this time with the good beacon hash
         SignedTransaction goodTx1 =
