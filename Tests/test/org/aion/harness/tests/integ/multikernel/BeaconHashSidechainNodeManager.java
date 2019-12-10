@@ -10,7 +10,6 @@ import org.aion.harness.main.NodeConfigurations.DatabaseOption;
 import org.aion.harness.main.NodeFactory;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.NodeListener;
-import org.aion.harness.main.ProhibitConcurrentHarness;
 import org.aion.harness.result.Result;
 import org.aion.harness.tests.integ.runner.exception.TestRunnerInitializationException;
 import org.aion.harness.tests.integ.runner.internal.TestNodeManager;
@@ -26,19 +25,8 @@ public final class BeaconHashSidechainNodeManager {
     private final String expectedKernelLocation;
     private final String handedwrittenConfigs;
 
-    private static final String WORKING_DIR = System.getProperty("user.dir");
     private static final long EXIT_LOCK_TIMEOUT = 3;
     private static final TimeUnit EXIT_LOCK_TIMEOUT_UNIT = TimeUnit.MINUTES;
-
-    public BeaconHashSidechainNodeManager(NodeType nodeType) {
-        this.nodeType = nodeType;
-        if(nodeType == NodeType.JAVA_NODE) {
-            this.expectedKernelLocation = WORKING_DIR + "/oan";
-            this.handedwrittenConfigs = WORKING_DIR + "/test_resources/custom";
-        } else {
-            throw new UnsupportedOperationException("Unsupported kernel type.  This manager only works for JAVA_NODE.");
-        }
-    }
 
     public BeaconHashSidechainNodeManager(NodeType nodeType,
                                           String expectedKernelLocation,
@@ -61,9 +49,6 @@ public final class BeaconHashSidechainNodeManager {
             if(clearDb) {
                 clearDb();
             }
-
-            // Acquire the system-wide lock.
-            ProhibitConcurrentHarness.acquireTestLock();
 
             // Initialize the node.
             NodeConfigurations configurations = NodeConfigurations.alwaysUseBuiltKernel(
@@ -91,14 +76,13 @@ public final class BeaconHashSidechainNodeManager {
     /**
      * Stops a local node if one is currently running.
      */
-    public void shutdownLocalNode() throws Exception {
+    public void shutdownLocalNode() {
         if (isKernelRunning()) {
             try {
                 this.localNode.blockingStop(EXIT_LOCK_TIMEOUT, EXIT_LOCK_TIMEOUT_UNIT);
             } catch (Throwable e) {
                 e.printStackTrace();
             } finally {
-                ProhibitConcurrentHarness.releaseTestLock();
                 this.localNode = null;
             }
         } else {

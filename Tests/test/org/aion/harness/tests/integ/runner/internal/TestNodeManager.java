@@ -15,7 +15,6 @@ import org.aion.harness.main.NodeConfigurations.DatabaseOption;
 import org.aion.harness.main.NodeFactory;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.NodeListener;
-import org.aion.harness.main.ProhibitConcurrentHarness;
 import org.aion.harness.result.Result;
 import org.aion.harness.tests.integ.runner.exception.TestRunnerInitializationException;
 import org.apache.commons.io.FileUtils;
@@ -63,9 +62,6 @@ public final class TestNodeManager {
 
             setRpcPort(System.getProperty("rpcPort"));
 
-            // Acquire the system-wide lock.
-            ProhibitConcurrentHarness.acquireTestLock();
-
             // Initialize the node.
             NodeConfigurations configurations = NodeConfigurations.alwaysUseBuiltKernel(
                 Network.CUSTOM, expectedKernelLocation, DatabaseOption.DO_NOT_PRESERVE_DATABASE);
@@ -96,14 +92,13 @@ public final class TestNodeManager {
     /**
      * Stops a local node if one is currently running.
      */
-    public void shutdownLocalNode() throws Exception {
+    public void shutdownLocalNode() {
         if (this.localNode != null) {
             try {
                 this.localNode.blockingStop(EXIT_LOCK_TIMEOUT, EXIT_LOCK_TIMEOUT_UNIT);
             } catch (Throwable e) {
                 e.printStackTrace();
             } finally {
-                ProhibitConcurrentHarness.releaseTestLock();
                 this.localNode = null;
             }
         } else {
