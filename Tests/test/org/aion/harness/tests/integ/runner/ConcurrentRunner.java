@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import org.aion.equihash.EquihashMiner;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.event.JavaPrepackagedLogEvents;
@@ -56,8 +57,8 @@ public final class ConcurrentRunner extends Runner {
     // Maximum number of threads to be used to run the tests. Our max is high because our tests are IO-bound.
     private static final int MAX_NUM_THREADS = 50;
 
-    private final EquihashMiner miner = EquihashMiner.defaultMiner();
-    private StakingBlockSigner stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
+    private EquihashMiner miner;
+    private StakingBlockSigner stakingBlockSigner;
 
     private final RunnerHelper helper;
 
@@ -110,16 +111,23 @@ public final class ConcurrentRunner extends Runner {
         PrintStream originalStderr = helper.replaceStderrWithThreadSpecificErrorStream();
 
         for (NodeType nt : node2ClassDescriptions.keySet()) {
-
-            miner.startMining();
             
             TestNodeManager testNodeManager = new TestNodeManager(nt);
+
+            if (System.getProperty("rpcPort") == null) {
+                Random random = new Random();
+                System.setProperty("rpcPort", Integer.toString(random.nextInt(1000) + 9000));
+            }
+
+            miner = new EquihashMiner("127.0.0.1", System.getProperty("rpcPort"));
+            miner.startMining();
 
             // Start up the local node before any tests are run.
             initializeAndStartNode(testNodeManager);
 
             try {
                 // StakingBlockSigner currently needs to be started after the node's rpc is up and running
+                stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
                 stakingBlockSigner.start();
 
                 // Run every @BeforeClass method in any of the test classes.

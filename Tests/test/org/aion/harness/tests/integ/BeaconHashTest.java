@@ -44,7 +44,7 @@ public class BeaconHashTest {
 
     private final SimpleLog log = new SimpleLog(BeaconHashTest.class.getName());
 
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
+    private static RPC rpc = RPC.newDefaultRpc();
 
     @Rule
     private PreminedAccount preminedAccount = new PreminedAccount(BigInteger.valueOf(1_000_000_000_000_000_000L));
@@ -62,14 +62,14 @@ public class BeaconHashTest {
         long bn = -1;
         long t0 = System.nanoTime();
 
-        while(bn < 5 && System.nanoTime() - t0 < BLOCK_WAIT_TIMEOUT_NANOS) {
+        while(bn < 6 && System.nanoTime() - t0 < BLOCK_WAIT_TIMEOUT_NANOS) {
             RpcResult<Long> maybeBn = rpc.blockNumber();
             if (!maybeBn.isSuccess()) {
                 throw new RuntimeException(
                     "Failed to get block number.  Error was: " + maybeBn.getError());
             }
             bn = maybeBn.getResult();
-            if(bn < 3) {
+            if(bn < 6) {
                 log.log(String.format(
                     "Waiting 15 sec to wait for best block of chain to exceed 3.  (current bn = %d",
                     bn));

@@ -58,7 +58,7 @@ public class BeaconHashSidechainTest {
     private static BeaconHashSidechainNodeManager manager1;
     private static BeaconHashSidechainNodeManager manager2;
 
-    private final EquihashMiner miner = EquihashMiner.defaultMiner();
+    private final EquihashMiner miner = new EquihashMiner("127.0.0.1", "8102");
 
     private static final RPC rpc1 = RPC.newRpc("127.0.0.1", "8101");
     private static final RPC rpc2 = RPC.newRpc("127.0.0.1", "8102");

@@ -3,8 +3,14 @@ package org.aion.harness.tests.integ.unsignedSaturation;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -55,12 +61,12 @@ public class UnsignedSaturationTest {
     private static String kernelDirectoryPath = System.getProperty("user.dir") + "/oan";
     private static File kernelDirectory = new File(kernelDirectoryPath);
     private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom");
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
     private static JavaNode node;
     private static PrivateKey preminedAccount;
     private static JavaPrepackagedLogEvents prepackagedLogEvents = new JavaPrepackagedLogEvents();
-    private static EquihashMiner miner = EquihashMiner.defaultMiner();
-    private static StakingBlockSigner signer = StakingBlockSigner.defaultStakingBlockSigner();
+    private static RPC rpc;
+    private static EquihashMiner miner;
+    private static StakingBlockSigner signer;
 
     public static final String PASSWORD = "password";
     private static final String PREMINED_KEY = "4c3c8a7c0292bc55d97c50b4bdabfd47547757d9e5c194e89f66f25855baacd0";
@@ -78,6 +84,15 @@ public class UnsignedSaturationTest {
     @BeforeClass
     public static void setup() throws Exception {
         preminedAccount = PrivateKey.fromBytes(Hex.decodeHex(PREMINED_KEY));
+
+        if (System.getProperty("rpcPort") == null) {
+            Random random = new Random();
+            System.setProperty("rpcPort", Integer.toString(random.nextInt(1000) + 9000));
+        }
+
+        rpc = RPC.newDefaultRpc();
+        miner = EquihashMiner.defaultMiner();
+        signer = StakingBlockSigner.defaultStakingBlockSigner();
     }
 
     @AfterClass
@@ -93,6 +108,7 @@ public class UnsignedSaturationTest {
     public void saturationTest() throws Exception {
         // Initialize the node.
         checkKernelExistsAndOverwriteConfigs();
+        setRpcPort(System.getProperty("rpcPort"));
         node = initializeNode();
 
         // 1. Before starting the node we have to create the sender accounts in the keystore.
@@ -106,7 +122,7 @@ public class UnsignedSaturationTest {
         // 2. Now start the node up.
         startNode(node);
         miner.startMining();
-        UnityBootstrap.bootstrap("8545");
+        UnityBootstrap.bootstrap(System.getProperty("rpcPort"));
         signer.start();
 
         // 3. Some basic assertions to catch any silly static errors.
@@ -301,5 +317,15 @@ public class UnsignedSaturationTest {
         for (Thread thread : threads) {
             thread.join();
         }
+    }
+
+    private static void setRpcPort(String port) throws IOException {
+        Charset charset = StandardCharsets.UTF_8;
+        Path path = Paths.get(kernelDirectoryPath + "/custom/config/config.xml");
+        String content = new String(Files.readAllBytes(path), charset);
+        content = content.replaceFirst("<rpc active=\"true\" ip=\"127\\.0\\.0\\.1\" port=\"\\d{4}\">", "<rpc active=\"true\" ip=\"127.0.0.1\" port=\"" + port + "\">");
+        content = content.replaceFirst("<java active=\"true\" ip=\"127\\.0\\.0\\.1\" port=\"\\d{4}\">", "<java active=\"true\" ip=\"127.0.0.1\" port=\"2" + port + "\">");
+        content = content.replaceFirst("<port>\\d{5}</port>", "<port>3" + port + "</port>");
+        Files.write(path, content.getBytes(charset));
     }
 }

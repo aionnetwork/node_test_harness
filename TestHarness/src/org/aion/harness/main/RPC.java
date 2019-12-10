@@ -53,6 +53,10 @@ public final class RPC {
         this.rpc = new RpcCaller(ip, port);
     }
 
+    public static RPC newDefaultRpc() {
+        return newRpc("127.0.0.1", System.getProperty("rpcPort"));
+    }
+
     public static RPC newRpc(String ip, String port) {
         return new RPC(ip, port, null);
     }

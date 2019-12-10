@@ -39,7 +39,7 @@ public class FvmTxSmokeTest {
 
     private final SimpleLog log = new SimpleLog("org.aion.harness.tests.integ.FvmTxSmokeTest");
 
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
+    private static RPC rpc = RPC.newDefaultRpc();
 
     @Rule
     private PreminedAccount preminedAccount = new PreminedAccount(BigInteger.valueOf(1_000_000_000_000_000_000L));

@@ -38,7 +38,7 @@ public class FvmDataBillingTest {
     private static final long ENERGY_PRICE = 10_000_000_000L;
     private IEvent transactionIsSealed;
     private IEvent transactionIsRejected;
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
+    private static RPC rpc = RPC.newDefaultRpc();
     private final SimpleLog log = new SimpleLog(BeaconHashTest.class.getName());
 
     @Rule

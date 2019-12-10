@@ -26,7 +26,7 @@ public class StakingBlockSigner {
     }
 
     public static StakingBlockSigner defaultStakingBlockSigner() {
-        return new StakingBlockSigner(defaultPrivateKey, defaultCoinbaseAddress, defaultIp, defaultPort);
+        return new StakingBlockSigner(defaultPrivateKey, defaultCoinbaseAddress, defaultIp, System.getProperty("rpcPort"));
     }
 
     public void start() {

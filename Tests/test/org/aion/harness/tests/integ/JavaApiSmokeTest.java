@@ -51,7 +51,7 @@ public class JavaApiSmokeTest {
 
     private final SimpleLog log = new SimpleLog("org.aion.harness.tests.integ.JavaApiSmokeTest");
 
-    private static RPC rpc = RPC.newRpc("127.0.0.1", "8545");
+    private static RPC rpc = RPC.newDefaultRpc();
     
     @Rule
     private PreminedAccount preminedAccount = new PreminedAccount(BigInteger.valueOf(1_000_000_000_000_000_000L));
@@ -65,12 +65,12 @@ public class JavaApiSmokeTest {
     @Test
     public void testGetBlockDetailsByRange() throws Exception {
         IAionAPI api = AionAPIImpl.inst();
-        ApiMsg connectionMsg = api.connect("tcp://localhost:8547");
+        ApiMsg connectionMsg = api.connect("tcp://localhost:2" + System.getProperty("rpcPort"));
         int tries = 0;
 
         while(connectionMsg.isError() && tries++ <= 10) {
             log.log("trying again after 3 sec");
-            connectionMsg = api.connect("tcp://localhost:8547");
+            connectionMsg = api.connect("tcp://localhost:2" + System.getProperty("rpcPort"));
         }
         if(connectionMsg.isError()) {
             throw new RuntimeException("error: aion_api can't connect to kernel (after retrying 10 times).");

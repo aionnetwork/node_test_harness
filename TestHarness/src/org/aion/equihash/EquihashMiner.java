@@ -43,7 +43,7 @@ public class EquihashMiner {
     }
 
     public static EquihashMiner defaultMiner() {
-        return new EquihashMiner("127.0.0.1", "8545");
+        return new EquihashMiner("127.0.0.1", System.getProperty("rpcPort"));
     }
 
     public void startMining() {

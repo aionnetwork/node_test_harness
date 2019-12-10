@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import org.aion.equihash.EquihashMiner;
 import org.aion.harness.main.NodeFactory.NodeType;
 import org.aion.harness.main.event.JavaPrepackagedLogEvents;
@@ -53,8 +54,8 @@ public final class SequentialRunner extends Runner {
     private final Description testClassDescription;
     private final Map<NodeType, Description> nodeType2Description;
 
-    private final EquihashMiner miner = EquihashMiner.defaultMiner();
-    private StakingBlockSigner stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
+    private EquihashMiner miner;
+    private StakingBlockSigner stakingBlockSigner;
 
     public SequentialRunner(Class<?> testClass) {
         this.helper = new RunnerHelper();
@@ -94,6 +95,12 @@ public final class SequentialRunner extends Runner {
 
         for(NodeType nt : nodeType2Description.keySet()) {
 
+            if (System.getProperty("rpcPort") == null) {
+                Random random = new Random();
+                System.setProperty("rpcPort", Integer.toString(random.nextInt(1000) + 9000));
+            }
+
+            miner = EquihashMiner.defaultMiner();
             miner.startMining();
 
             TestNodeManager testNodeManager = new TestNodeManager(nt);
@@ -120,6 +127,7 @@ public final class SequentialRunner extends Runner {
                 if (!beforeClassFailed) {
                     initializeAndStartNode(testNodeManager);
                     // StakingBlockSigner currently needs to be started after the node's rpc is up and running
+                    stakingBlockSigner = StakingBlockSigner.defaultStakingBlockSigner();
                     stakingBlockSigner.start();
                     runTests(runNotifier, nodeDescription.getChildren(), nt, testNodeManager);
                 }

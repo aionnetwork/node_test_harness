@@ -2,6 +2,11 @@ package org.aion.harness.tests.integ.runner.internal;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import org.aion.harness.main.LocalNode;
 import org.aion.harness.main.Network;
@@ -56,6 +61,8 @@ public final class TestNodeManager {
             // Verify the kernel is in the expected location and overwrite its config & genesis files.
             checkKernelExistsAndOverwriteConfigs();
 
+            setRpcPort(System.getProperty("rpcPort"));
+
             // Acquire the system-wide lock.
             ProhibitConcurrentHarness.acquireTestLock();
 
@@ -77,7 +84,7 @@ public final class TestNodeManager {
             }
 
             // Bootstrap should come after overwriting configs so they're the same for bootstrap and normal operation
-            UnityBootstrap.bootstrap("8545");
+            UnityBootstrap.bootstrap(System.getProperty("rpcPort"));
 
             this.localNode = node;
         }
@@ -120,6 +127,28 @@ public final class TestNodeManager {
             throw new TestRunnerInitializationException("Expected to find a kernel at: " + expectedKernelLocation);
         }
         overwriteConfigAndGenesis();
+    }
+
+    private void setRpcPort(String port) throws IOException {
+        Charset charset = StandardCharsets.UTF_8;
+
+        if (nodeType == NodeType.RUST_NODE) {
+            Path path = Paths.get(expectedKernelLocation + "/custom/custom.toml");
+            String content = new String(Files.readAllBytes(path), charset);
+            content = content.replaceFirst("port = 8545", "port = " + port);
+            content = content.replaceFirst("port = 8546", "port = 2" + port);
+            content = content.replaceFirst("local_node = \"p2p://00000000-0000-0000-0000-000000000000@0\\.0\\.0\\.0:30303\"", "local_node = \"p2p://00000000-0000-0000-0000-000000000000@0.0.0.0:3" + port + "\"");
+            Files.write(path, content.getBytes(charset));
+        } else if (nodeType == NodeType.JAVA_NODE) {
+            Path path = Paths.get(expectedKernelLocation + "/custom/config/config.xml");
+            String content = new String(Files.readAllBytes(path), charset);
+            content = content.replaceFirst("<rpc active=\"true\" ip=\"127\\.0\\.0\\.1\" port=\"\\d{4}\">", "<rpc active=\"true\" ip=\"127.0.0.1\" port=\"" + port + "\">");
+            content = content.replaceFirst("<java active=\"true\" ip=\"127\\.0\\.0\\.1\" port=\"\\d{4}\">", "<java active=\"true\" ip=\"127.0.0.1\" port=\"2" + port + "\">");
+            content = content.replaceFirst("<port>\\d{5}</port>", "<port>3" + port + "</port>");
+            Files.write(path, content.getBytes(charset));
+        } else {
+            throw new IllegalArgumentException("Unknown Node Type");
+        }
     }
 
     private boolean kernelExists() {
