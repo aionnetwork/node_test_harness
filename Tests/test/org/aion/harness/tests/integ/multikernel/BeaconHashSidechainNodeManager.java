@@ -117,10 +117,11 @@ public final class BeaconHashSidechainNodeManager {
         if(nodeType == NodeType.RUST_NODE) {
             overwriteIfTargetDirExists(new File(handedwrittenConfigs),
                 new File(expectedKernelLocation + "/custom"));
-        } else if(nodeType == NodeType.JAVA_NODE
-            || nodeType == NodeType.PROXY_JAVA_NODE ) {
-            FileUtils.copyDirectory(new File(handedwrittenConfigs),
-                new File(expectedKernelLocation + "/custom"));
+            FileUtils.copyFile(new File (handedwrittenConfigs + "/env"), new File(expectedKernelLocation + "/env"));
+        } else if(nodeType == NodeType.JAVA_NODE || nodeType == NodeType.PROXY_JAVA_NODE ) {
+            FileUtils.copyFile(new File(handedwrittenConfigs + "/fork.properties"), new File(expectedKernelLocation + "/networks/custom/fork.properties"));
+            FileUtils.copyFile(new File(handedwrittenConfigs + "/genesis.json"), new File(expectedKernelLocation + "/networks/custom/genesis.json"));
+            FileUtils.copyFile(new File(handedwrittenConfigs + "/config.xml"), new File(expectedKernelLocation + "/custom/config/config.xml"));
         } else {
             throw new IllegalStateException("Unsupported kernel");
         }

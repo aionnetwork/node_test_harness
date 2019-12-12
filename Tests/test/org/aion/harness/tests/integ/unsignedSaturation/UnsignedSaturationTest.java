@@ -60,7 +60,7 @@ import org.junit.Test;
 public class UnsignedSaturationTest {
     private static String kernelDirectoryPath = System.getProperty("user.dir") + "/oan";
     private static File kernelDirectory = new File(kernelDirectoryPath);
-    private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom");
+    private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom/config");
     private static JavaNode node;
     private static PrivateKey preminedAccount;
     private static JavaPrepackagedLogEvents prepackagedLogEvents = new JavaPrepackagedLogEvents();
@@ -213,7 +213,9 @@ public class UnsignedSaturationTest {
     }
 
     private static void overwriteConfigAndGenesis() throws IOException {
-        FileUtils.copyDirectory(handwrittenConfigs, new File(kernelDirectoryPath + "/custom"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/fork.properties"), new File(kernelDirectoryPath + "/networks/custom/fork.properties"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/genesis.json"), new File(kernelDirectoryPath + "/networks/custom/genesis.json"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/config.xml"), new File(kernelDirectoryPath + "/custom/config/config.xml"));
     }
 
     /**
