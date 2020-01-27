@@ -53,7 +53,7 @@ import org.junit.Test;
 public class SaturationTest {
     private static String kernelDirectoryPath = System.getProperty("user.dir") + "/oan";
     private static File kernelDirectory = new File(kernelDirectoryPath);
-    private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom");
+    private static File handwrittenConfigs = new File(System.getProperty("user.dir") + "/test_resources/custom/config");
     private static LocalNode node;
     private static PrivateKey preminedAccount;
     private static BigInteger preminedNonce = BigInteger.ZERO;
@@ -88,6 +88,7 @@ public class SaturationTest {
         rpc = RPC.newDefaultRpc();
         miner = EquihashMiner.defaultMiner();
         miner.startMining();
+        String port = System.getProperty("rpcPort");
         UnityBootstrap.bootstrap(System.getProperty("rpcPort"));
         signer = StakingBlockSigner.defaultStakingBlockSigner();
         signer.start();
@@ -318,7 +319,9 @@ public class SaturationTest {
     }
 
     private static void overwriteConfigAndGenesis() throws IOException {
-        FileUtils.copyDirectory(handwrittenConfigs, new File(kernelDirectoryPath + "/custom"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/fork.properties"), new File(kernelDirectoryPath + "/networks/custom/fork.properties"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/genesis.json"), new File(kernelDirectoryPath + "/networks/custom/genesis.json"));
+        FileUtils.copyFile(new File(handwrittenConfigs + "/config.xml"), new File(kernelDirectoryPath + "/custom/config/config.xml"));
     }
 
     private static PrivateKey initializePreminedAccount() throws DecoderException, InvalidKeySpecException {

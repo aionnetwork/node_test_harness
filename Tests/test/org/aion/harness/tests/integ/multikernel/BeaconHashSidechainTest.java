@@ -71,12 +71,12 @@ public class BeaconHashSidechainTest {
     public BeaconHashSidechainTest() {
         manager1 = new BeaconHashSidechainNodeManager(NodeType.JAVA_NODE,
             System.getProperty("user.dir") + "/aion",
-            System.getProperty("user.dir") + "/test_resources/aioncustom1"
+            System.getProperty("user.dir") + "/test_resources/aioncustom1/config"
         );
 
         manager2 = new BeaconHashSidechainNodeManager(NodeType.JAVA_NODE,
             System.getProperty("user.dir") + "/aion2",
-            System.getProperty("user.dir") + "/test_resources/aioncustom2"
+            System.getProperty("user.dir") + "/test_resources/aioncustom2/config"
         );
     }
 

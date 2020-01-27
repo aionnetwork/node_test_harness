@@ -16,7 +16,7 @@ pipeline {
         stage('Build Kernel Java') {
             steps {
                 dir('javaKernel') {
-                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: 'https://github.com/aionnetwork/aion.git']], branches: [[name: '125ccb59']]], poll: false
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: 'https://github.com/aionnetwork/aion.git']], branches: [[name: 'e1088b103']]], poll: false
                     sh "./gradlew pack"
                 }
                 sh('cp javaKernel/pack/oan.tar.bz2 Tests')
