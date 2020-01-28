@@ -77,10 +77,11 @@ function result_is_true() {
 }
 
 function extract_status() {
-	if [[ "$1" =~ (\"status\".+\"id) ]];
+	if [[ "$1" =~ (\"status\":\"0x[0-9A-Fa-f]+\") ]];
 	then
-		result=${BASH_REMATCH[0]:10}
-		echo ${result:0:3}
+        	result=${BASH_REMATCH[0]:10}
+        	size="$((${#result} - 1))"
+        	echo "${result:0:$size}"
 	fi
 }
 
@@ -168,7 +169,7 @@ then
 
 	status=$(extract_status "$response")
 
-	if [ "0x0" == "$status" ]
+	if [[ $status =~ ^.*0$ ]] # match the status on an empty byte
 	then
 		exit 2
 	fi
@@ -195,10 +196,10 @@ then
 
 	status=$(extract_status "$response")
 
-	if [ "0x0" == "$status" ]
+	if [[ $status =~ ^.*0$ ]]
 	then
 		exit 2
-	elif [ "0x1" == "$status" ]
+	elif [[ $status =~ ^.*1$ ]]
 	then
 		exit 0
 	else
@@ -213,7 +214,7 @@ then
 	node_address="$4"
 	jar_path="$5"
 	jar_bytes=""
-	
+
 	# Grab the bytes of the deployment jar.
 	if [ $# -eq 5 ]
 	then
@@ -251,7 +252,7 @@ then
 	target_address="$4"
 	serialized_call="$5"
 	value="$6"
-	
+
 	if [ $# -eq 7 ]
 	then
 		# Package the entire transaction.
@@ -270,7 +271,7 @@ then
 
 elif [ "$1" = '--getseed' ]
 then
-        
+
         if [ $# -ne 2 ]
         then
                 echo 'Incorrect number of arguments given!'
