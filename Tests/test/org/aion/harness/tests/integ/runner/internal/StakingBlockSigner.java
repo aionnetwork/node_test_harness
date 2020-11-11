@@ -35,7 +35,7 @@ public class StakingBlockSigner {
         try {
             // "amity" is a hack to make this work. The Block signer doesn't have a "custom" option,
             // but the address used to deploy the staking contract on amity is the same one we use here.
-            ProcessBuilder builder = new ProcessBuilder("java", "-jar", "block_signer-1.1.jar", signingAddressPrivateKey, coinbaseAddress, "amity", ip, port)
+            ProcessBuilder builder = new ProcessBuilder("java", "-jar", "block_signer-1.2.jar", signingAddressPrivateKey, coinbaseAddress, "amity", ip, port)
                 .directory(new File(EXTERNAL_STAKER_PATH))
                 .redirectOutput(Redirect.DISCARD)
             ;
